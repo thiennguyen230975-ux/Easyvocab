@@ -1798,16 +1798,16 @@
 
                 if (!this.gameSelectedCard) {
                     this.gameSelectedCard = { btn, id, type };
-                    btn.classList.add('border-duo-orange', 'bg-duo-orange/10');
+                    btn.classList.add('border-duo-orange', 'bg-duo-orange', 'text-white');
                 } else {
                     if (this.gameSelectedCard.type === type) {
-                        this.gameSelectedCard.btn.classList.remove('border-duo-orange', 'bg-duo-orange/10');
+                        this.gameSelectedCard.btn.classList.remove('border-duo-orange', 'bg-duo-orange', 'text-white');
                         if (this.gameSelectedCard.btn === btn) {
                             this.gameSelectedCard = null;
                             return;
                         }
                         this.gameSelectedCard = { btn, id, type };
-                        btn.classList.add('border-duo-orange', 'bg-duo-orange/10');
+                        btn.classList.add('border-duo-orange', 'bg-duo-orange', 'text-white');
                         return;
                     }
 
@@ -1836,7 +1836,7 @@
                         document.getElementById('game-combo-text').textContent = 'x1';
                         const firstBtn = this.gameSelectedCard.btn;
                         [firstBtn, btn].forEach(card => {
-                            card.classList.remove('border-duo-orange', 'bg-duo-orange/10');
+                            card.classList.remove('border-duo-orange', 'bg-duo-orange');
                             card.classList.add('bg-duo-red', 'text-white');
                         });
                         this.gameSelectedCard = null;
