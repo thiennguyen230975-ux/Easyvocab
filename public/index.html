@@ -152,6 +152,11 @@
             background-image: radial-gradient(ellipse at top left, rgba(37, 99, 235, 0.13), transparent 40rem);
             color: #e5eaf4;
         }
+        body, button, input, select, textarea { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.42);
+            outline-offset: 2px;
+        }
         header.glass-panel {
             background: rgba(255, 255, 255, 0.88);
             border-color: rgba(148, 163, 184, 0.2);
@@ -195,6 +200,7 @@
             background: #1e293b !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
         }
+        nav[aria-label="Điều hướng chính"] { max-width: 100%; }
         .mobile-nav-btn { white-space: nowrap; color: #64748b; }
         .mobile-nav-btn.active {
             color: #1d4ed8;
@@ -219,15 +225,69 @@
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16) !important;
         }
         #tab-dashboard > div:first-child {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
             background: linear-gradient(120deg, #eef4ff, #f7f8ff 58%, #f1f5f9) !important;
             border-color: rgba(37, 99, 235, 0.14) !important;
+        }
+        #tab-dashboard > div:first-child::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            width: 19rem;
+            height: 19rem;
+            right: 10%;
+            top: -12rem;
+            border-radius: 9999px;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.2), transparent 70%);
+            pointer-events: none;
         }
         .dark #tab-dashboard > div:first-child {
             background: linear-gradient(120deg, #172440, #171d31 58%, #151d2b) !important;
             border-color: rgba(96, 165, 250, 0.18) !important;
         }
+        #tab-dashboard > div:nth-of-type(3) > div {
+            background: rgba(255, 255, 255, 0.88) !important;
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        }
+        #tab-dashboard > div:nth-of-type(3) > div:hover {
+            transform: translateY(-3px);
+            border-color: rgba(37, 99, 235, 0.24) !important;
+            box-shadow: 0 16px 36px rgba(37, 99, 235, 0.09) !important;
+        }
+        .dark #tab-dashboard > div:nth-of-type(3) > div { background: rgba(18, 28, 45, 0.92) !important; }
+        #tab-dashboard > div:nth-of-type(3) > div > div:first-child > span:last-child {
+            padding: 0.55rem;
+            border-radius: 0.85rem;
+        }
+        #tab-dashboard > div:nth-of-type(3) > div > div:nth-child(2) { letter-spacing: -0.045em; }
+        #tab-dashboard > div:nth-of-type(4) > div {
+            background: rgba(255, 255, 255, 0.9) !important;
+        }
+        .dark #tab-dashboard > div:nth-of-type(4) > div { background: rgba(18, 28, 45, 0.94) !important; }
+        #tab-dashboard > div:nth-of-type(4) h3 { font-size: 1rem; }
+        #tab-dashboard > div:nth-of-type(4) > div:first-child .relative { min-height: 13rem; }
         .tab-content h1, .tab-content h2, .tab-content h3 { letter-spacing: -0.025em; }
         .tab-content button, header button { -webkit-tap-highlight-color: transparent; }
+        .tab-content button:not(:disabled) { transition-duration: 180ms; }
+        #quiz-question-view .quiz-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.1);
+        }
+        #vocab-table-body tr { transition: background-color 150ms ease; }
+        #vocab-table-body tr:hover { background-color: rgba(37, 99, 235, 0.045); }
+        .dark #vocab-table-body tr:hover { background-color: rgba(96, 165, 250, 0.07); }
+        #tab-flashcard #flashcard-inner { box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12); }
+        .dark #tab-flashcard #flashcard-inner { box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+        @media (min-width: 768px) and (max-width: 1199px) {
+            nav[aria-label="Điều hướng chính"] { gap: 0; flex: 0 1 auto; }
+            nav[aria-label="Điều hướng chính"] .nav-btn { padding-left: 0.65rem; padding-right: 0.65rem; }
+            nav[aria-label="Điều hướng chính"] .nav-btn span { display: none; }
+        }
+        @media (min-width: 1200px) {
+            nav[aria-label="Điều hướng chính"] .nav-btn span { display: inline; }
+        }
         @media (max-width: 767px) {
             header > div:first-child { min-width: 0; }
             header > div:last-child { justify-content: flex-start; }
@@ -262,27 +322,27 @@
 
             <!-- Navigation Links -->
             <nav aria-label="Điều hướng chính" class="hidden md:flex items-center space-x-1 bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-notion-border dark:border-notion-darkBorder">
-                <button onclick="app.switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                <button onclick="app.switchTab('dashboard')" id="nav-dashboard" title="Thống kê ôn tập" aria-label="Thống kê ôn tập" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     <span>Thống kê ôn tập</span>
                 </button>
-                <button onclick="app.switchTab('vocab')" id="nav-vocab" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                <button onclick="app.switchTab('vocab')" id="nav-vocab" title="Kho Từ Vựng" aria-label="Kho Từ Vựng" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                     <span>Kho Từ Vựng</span>
                 </button>
-                <button onclick="app.switchTab('flashcard')" id="nav-flashcard" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                <button onclick="app.switchTab('flashcard')" id="nav-flashcard" title="Flashcards 3D" aria-label="Flashcards 3D" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                     <span>Flashcards 3D</span>
                 </button>
-                <button onclick="app.switchTab('quiz')" id="nav-quiz" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                <button onclick="app.switchTab('quiz')" id="nav-quiz" title="Luyện Tập Quiz" aria-label="Luyện Tập Quiz" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                     <span>Luyện Tập Quiz</span>
                 </button>
-                <button onclick="app.switchTab('game')" id="nav-game" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                <button onclick="app.switchTab('game')" id="nav-game" title="Ghép từ nhanh" aria-label="Ghép từ nhanh" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     <span>Ghép từ nhanh</span>
                 </button>
-                <button onclick="app.switchTab('leaderboard')" id="nav-leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                <button onclick="app.switchTab('leaderboard')" id="nav-leaderboard" title="Bảng xếp hạng" aria-label="Bảng xếp hạng" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                     <span>BXH</span>
                 </button>
@@ -339,10 +399,10 @@
             <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-duo-blue/10 via-duo-purple/10 to-transparent border border-duo-blue/20 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="space-y-2 text-center md:text-left">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-duo-blue/10 text-duo-blue font-bold text-xs uppercase tracking-wider">
-                        <span class="w-2 h-2 rounded-full bg-duo-blue animate-ping"></span> Spaced Repetition System Active
+                        <span class="w-2 h-2 rounded-full bg-duo-blue animate-ping"></span> Lộ trình ôn tập thông minh
                     </div>
                     <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Chào mừng trở lại, <span id="dash-user-name" class="text-duo-blue">Học Viên</span>! 👋</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 max-w-xl">Hôm nay bạn có <span id="dash-due-count" class="font-bold text-duo-red">12 từ vựng</span> cần ôn tập theo đường cong quên trí nhớ. Hãy tiếp tục giữ thói quen rèn luyện nhé!</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 max-w-xl">Bạn có <span id="dash-due-count" class="font-bold text-duo-red">12 từ vựng</span> cần ôn hôm nay. Duy trì nhịp học nhỏ mỗi ngày để ghi nhớ lâu hơn.</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="app.switchTab('flashcard')" class="px-5 py-3 rounded-2xl bg-duo-blue hover:bg-duo-blueDark text-white font-bold text-sm shadow-lg shadow-duo-blue/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
@@ -356,6 +416,13 @@
             </div>
 
             <!-- Stats KPI Grid -->
+            <div class="flex flex-wrap items-end justify-between gap-2 px-1">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">Tổng quan</p>
+                    <h2 class="mt-1 text-lg font-extrabold text-slate-800 dark:text-slate-100">Tiến độ học tập</h2>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Thành quả của bạn, từng ngày một</p>
+            </div>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="p-5 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-2">
                     <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
