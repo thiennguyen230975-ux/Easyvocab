@@ -96,6 +96,16 @@
             border-color: #58CC02 !important;
             color: #FFFFFF !important;
         }
+        .quiz-option.is-correct {
+            background-color: #58CC02 !important;
+            border-color: #58CC02 !important;
+            color: #FFFFFF !important;
+        }
+        .quiz-option.is-wrong {
+            background-color: #FF4B4B !important;
+            border-color: #FF4B4B !important;
+            color: #FFFFFF !important;
+        }
 
         /* Glassmorphism Effects */
         .glass-panel {
@@ -840,6 +850,7 @@
                 this.selectedIds = new Set();
                 this.currentTab = 'dashboard';
                 this.quizMode = 'mcq';
+                this.quizFeedbackTimer = null;
                 this.flashcardIndex = 0;
                 this.isFlipped = false;
                 
@@ -1652,6 +1663,8 @@
             }
 
             switchQuizMode(mode) {
+                if (this.quizFeedbackTimer) clearTimeout(this.quizFeedbackTimer);
+                this.quizFeedbackTimer = null;
                 this.quizMode = mode;
                 document.querySelectorAll('.quiz-tab-btn').forEach(btn => btn.classList.remove('bg-duo-blue', 'text-white'));
                 document.getElementById(`quiz-mode-${mode}`).classList.add('bg-duo-blue', 'text-white');
@@ -1703,7 +1716,7 @@
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
                             ${options.map(opt => `
-                                <button onclick="app.checkAnswer('${opt === target.meaning}', '${target.word}')" class="p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-blue font-bold text-left text-sm transition-all">
+                                <button onclick="app.checkQuizChoice(this, ${opt === target.meaning})" class="quiz-option p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-blue font-bold text-left text-sm transition-all">
                                     ${opt}
                                 </button>
                             `).join('')}
@@ -1736,6 +1749,34 @@
                         </div>
                     `;
                 }
+            }
+
+            checkQuizChoice(button, isCorrect) {
+                const options = [...document.querySelectorAll('.quiz-option')];
+                options.forEach(option => { option.disabled = true; });
+
+                if (isCorrect) {
+                    button.classList.add('is-correct');
+                    this.playSFX('correct');
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                    this.addXP(20);
+                    const score = document.getElementById('quiz-score-text');
+                    const currentScore = Number(score.textContent.match(/\d+/)?.[0] || 0);
+                    score.textContent = `Đúng: ${currentScore + 1}`;
+                    this.quizFeedbackTimer = setTimeout(() => {
+                        this.quizFeedbackTimer = null;
+                        this.renderQuizQuestion();
+                    }, 700);
+                    return;
+                }
+
+                button.classList.add('is-wrong');
+                this.playSFX('wrong');
+                this.quizFeedbackTimer = setTimeout(() => {
+                    button.classList.remove('is-wrong');
+                    options.forEach(option => { option.disabled = false; });
+                    this.quizFeedbackTimer = null;
+                }, 650);
             }
 
             checkAnswer(isCorrect, targetWord) {
