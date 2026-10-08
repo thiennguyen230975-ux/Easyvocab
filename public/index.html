@@ -347,7 +347,7 @@
                                     <input type="checkbox" id="select-all-checkbox" onchange="app.toggleSelectAll(this.checked)" class="rounded border-slate-300 text-duo-blue focus:ring-duo-blue">
                                 </th>
                                 <th class="p-3.5">Từ Tiếng Anh</th>
-                                <th class="p-3.5">Phát Âm IPA</th>
+                                <th class="p-3.5">IPA (Anh-Anh)</th>
                                 <th class="p-3.5">Từ Loại</th>
                                 <th class="p-3.5">Nghĩa Tiếng Việt</th>
                                 <th class="p-3.5">Ví Dụ Thực Tế</th>
@@ -658,7 +658,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="text-slate-500">Phiên Âm IPA</label>
+                        <label class="text-slate-500">Phiên âm IPA (Anh-Anh)</label>
                         <input type="text" id="add-ipa-input" placeholder="/rɪˈzɪl.jəns/" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
                     </div>
                     <div>
@@ -716,15 +716,26 @@
     <script>
         /* VocabMind Pro Core Application Logic */
         const DEFAULT_VOCAB_DATA = [
-            { id: '1', word: 'Perseverance', ipa: '/ˌpɜː.sɪˈvɪə.rəns/', pos: 'noun', meaning: 'Sự kiên trì, nhẫn nại', example: 'Great achievements require perseverance.', set: 'IELTS Academic', srsStage: 'learning', interval: 1, easeFactor: 2.5, rep: 1, nextReview: Date.now() },
-            { id: '2', word: 'Resilience', ipa: '/rɪˈzɪl.jəns/', pos: 'noun', meaning: 'Khả năng phục hồi nhanh', example: 'Psychological resilience helps in stressful times.', set: 'IELTS Academic', srsStage: 'review', interval: 3, easeFactor: 2.4, rep: 2, nextReview: Date.now() },
-            { id: '3', word: 'Meticulous', ipa: '/mɪˈtɪk.jə.ləs/', pos: 'adj', meaning: 'Tỉ mỉ, cẩn thận từng chi tiết', example: 'She is meticulous about her work.', set: 'IELTS Academic', srsStage: 'mastered', interval: 7, easeFactor: 2.6, rep: 4, nextReview: Date.now() + 86400000 * 3 },
-            { id: '4', word: 'Ambiguity', ipa: '/ˌæm.bɪˈɡjuː.ə.ti/', pos: 'noun', meaning: 'Sự mơ hồ, nhập nhằng', example: 'Avoid ambiguity in formal legal documents.', set: 'TOEIC Essential', srsStage: 'new', interval: 0, easeFactor: 2.5, rep: 0, nextReview: Date.now() },
-            { id: '5', word: 'Coherent', ipa: '/kəʊˈhɪə.rənt/', pos: 'adj', meaning: 'Mạch lạc, chặt chẽ', example: 'The essay was clear and coherent.', set: 'IELTS Academic', srsStage: 'learning', interval: 1, easeFactor: 2.5, rep: 1, nextReview: Date.now() },
-            { id: '6', word: 'Pragmatic', ipa: '/præɡˈmæt.ɪk/', pos: 'adj', meaning: 'Thực tế, thực dụng', example: 'We need a pragmatic solution to this problem.', set: 'TOEIC Essential', srsStage: 'review', interval: 2, easeFactor: 2.3, rep: 2, nextReview: Date.now() },
-            { id: '7', word: 'Elaborate', ipa: '/ɪˈlæb.ər.ət/', pos: 'verb', meaning: 'Giải thích chi tiết', example: 'Could you elaborate on that point?', set: 'Daily Conversation', srsStage: 'new', interval: 0, easeFactor: 2.5, rep: 0, nextReview: Date.now() },
-            { id: '8', word: 'Spontaneous', ipa: '/spɒnˈteɪ.ni.əs/', pos: 'adj', meaning: 'Tự phát, bộc phát', example: 'The crowd burst into spontaneous applause.', set: 'Daily Conversation', srsStage: 'mastered', interval: 14, easeFactor: 2.7, rep: 5, nextReview: Date.now() + 86400000 * 5 }
+            { id: '1', word: 'Perseverance', ipa: '/ˌpɜːsɪˈvɪərəns/', pos: 'noun', meaning: 'Sự kiên trì, nhẫn nại', example: 'Great achievements require perseverance.', set: 'IELTS Academic', srsStage: 'learning', interval: 1, easeFactor: 2.5, rep: 1, nextReview: Date.now() },
+            { id: '2', word: 'Resilience', ipa: '/rɪˈzɪliəns/', pos: 'noun', meaning: 'Khả năng phục hồi nhanh', example: 'Psychological resilience helps in stressful times.', set: 'IELTS Academic', srsStage: 'review', interval: 3, easeFactor: 2.4, rep: 2, nextReview: Date.now() },
+            { id: '3', word: 'Meticulous', ipa: '/məˈtɪkjələs/', pos: 'adj', meaning: 'Tỉ mỉ, cẩn thận từng chi tiết', example: 'She is meticulous about her work.', set: 'IELTS Academic', srsStage: 'mastered', interval: 7, easeFactor: 2.6, rep: 4, nextReview: Date.now() + 86400000 * 3 },
+            { id: '4', word: 'Ambiguity', ipa: '/ˌæmbɪˈɡjuːəti/', pos: 'noun', meaning: 'Sự mơ hồ, nhập nhằng', example: 'Avoid ambiguity in formal legal documents.', set: 'TOEIC Essential', srsStage: 'new', interval: 0, easeFactor: 2.5, rep: 0, nextReview: Date.now() },
+            { id: '5', word: 'Coherent', ipa: '/kəʊˈhɪərənt/', pos: 'adj', meaning: 'Mạch lạc, chặt chẽ', example: 'The essay was clear and coherent.', set: 'IELTS Academic', srsStage: 'learning', interval: 1, easeFactor: 2.5, rep: 1, nextReview: Date.now() },
+            { id: '6', word: 'Pragmatic', ipa: '/præɡˈmætɪk/', pos: 'adj', meaning: 'Thực tế, thực dụng', example: 'We need a pragmatic solution to this problem.', set: 'TOEIC Essential', srsStage: 'review', interval: 2, easeFactor: 2.3, rep: 2, nextReview: Date.now() },
+            { id: '7', word: 'Elaborate', ipa: '/ɪˈlæbəreɪt/', pos: 'verb', meaning: 'Giải thích chi tiết', example: 'Could you elaborate on that point?', set: 'Daily Conversation', srsStage: 'new', interval: 0, easeFactor: 2.5, rep: 0, nextReview: Date.now() },
+            { id: '8', word: 'Spontaneous', ipa: '/spɒnˈteɪniəs/', pos: 'adj', meaning: 'Tự phát, bộc phát', example: 'The crowd burst into spontaneous applause.', set: 'Daily Conversation', srsStage: 'mastered', interval: 14, easeFactor: 2.7, rep: 5, nextReview: Date.now() + 86400000 * 5 }
         ];
+
+        const DEFAULT_IPA_CORRECTIONS = {
+            'Perseverance': ['/ˌpɜː.sɪˈvɪə.rəns/', '/ˌpɜːsɪˈvɪərəns/'],
+            'Resilience': ['/rɪˈzɪl.jəns/', '/rɪˈzɪliəns/'],
+            'Meticulous': ['/mɪˈtɪk.jə.ləs/', '/məˈtɪkjələs/'],
+            'Ambiguity': ['/ˌæm.bɪˈɡjuː.ə.ti/', '/ˌæmbɪˈɡjuːəti/'],
+            'Coherent': ['/kəʊˈhɪə.rənt/', '/kəʊˈhɪərənt/'],
+            'Pragmatic': ['/præɡˈmæt.ɪk/', '/præɡˈmætɪk/'],
+            'Elaborate': ['/ɪˈlæb.ər.ət/', '/ɪˈlæbəreɪt/'],
+            'Spontaneous': ['/spɒnˈteɪ.ni.əs/', '/spɒnˈteɪniəs/']
+        };
 
         const AVATARS = ['🎓', '🦁', '🚀', '🦊', '🦉', '⚡', '🤖', '👑', '🐼', '🐉', '🎨', '🌟'];
 
@@ -743,6 +754,15 @@
                 this.user.loggedIn = false;
 
                 this.vocabs = JSON.parse(localStorage.getItem('vm_vocabs')) || DEFAULT_VOCAB_DATA;
+                let correctedDefaultIpa = false;
+                this.vocabs.forEach(vocab => {
+                    const correction = DEFAULT_IPA_CORRECTIONS[vocab.word];
+                    if (correction && vocab.ipa === correction[0]) {
+                        vocab.ipa = correction[1];
+                        correctedDefaultIpa = true;
+                    }
+                });
+                if (correctedDefaultIpa) localStorage.setItem('vm_vocabs', JSON.stringify(this.vocabs));
                 const savedSets = JSON.parse(localStorage.getItem('vm_vocab_sets')) || [];
                 this.vocabSets = Array.from(new Set([
                     ...DEFAULT_VOCAB_DATA.map(v => v.set),

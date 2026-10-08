@@ -22,3 +22,5 @@ The homepage uses the VocabMind learning dashboard in `public/index.html`. Googl
 Create and manage vocabulary decks from the **Kho Từ Vựng** tab. Deck names and vocabulary are saved in the current browser, and newly created decks are available in the flashcard selector.
 
 The vocabulary importer accepts Excel, CSV, TXT, PDF, and Word `.docx` files. Document imports need selectable text and a table with English/Word and Meaning/Translation columns, or text lines in the form `word | meaning`. Scanned image-only PDFs and legacy `.doc` files are not supported.
+
+The built-in sample words use British English IPA (Anh-Anh). When existing browser data contains the previous sample transcriptions, the app updates those defaults once while preserving custom IPA values.
