@@ -81,6 +81,22 @@
             .vocab-row .row-checkbox { opacity: 1; }
         }
 
+        .game-card.is-selected {
+            background-color: #FF9600 !important;
+            border-color: #FF9600 !important;
+            color: #FFFFFF !important;
+        }
+        .game-card.is-wrong {
+            background-color: #FF4B4B !important;
+            border-color: #FF4B4B !important;
+            color: #FFFFFF !important;
+        }
+        .game-card.is-matched {
+            background-color: #58CC02 !important;
+            border-color: #58CC02 !important;
+            color: #FFFFFF !important;
+        }
+
         /* Glassmorphism Effects */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
@@ -1798,24 +1814,26 @@
 
                 if (!this.gameSelectedCard) {
                     this.gameSelectedCard = { btn, id, type };
-                    btn.classList.add('border-duo-orange', 'bg-duo-orange', 'text-white');
+                    btn.classList.add('is-selected');
                 } else {
                     if (this.gameSelectedCard.type === type) {
-                        this.gameSelectedCard.btn.classList.remove('border-duo-orange', 'bg-duo-orange', 'text-white');
+                        this.gameSelectedCard.btn.classList.remove('is-selected');
                         if (this.gameSelectedCard.btn === btn) {
                             this.gameSelectedCard = null;
                             return;
                         }
                         this.gameSelectedCard = { btn, id, type };
-                        btn.classList.add('border-duo-orange', 'bg-duo-orange', 'text-white');
+                        btn.classList.add('is-selected');
                         return;
                     }
 
                     if (this.gameSelectedCard.id === id) {
                         // MATCH SUCCESS
                         this.playSFX('correct');
-                        btn.className = "w-full p-4 rounded-2xl bg-duo-green text-white font-bold text-sm transition-all";
-                        this.gameSelectedCard.btn.className = "w-full p-4 rounded-2xl bg-duo-green text-white font-bold text-sm transition-all";
+                        [btn, this.gameSelectedCard.btn].forEach(card => {
+                            card.classList.remove('is-selected', 'is-wrong');
+                            card.classList.add('bg-duo-green', 'is-matched');
+                        });
 
                         this.gameScore += 100 * this.gameCombo;
                         this.gameCombo++;
@@ -1836,12 +1854,12 @@
                         document.getElementById('game-combo-text').textContent = 'x1';
                         const firstBtn = this.gameSelectedCard.btn;
                         [firstBtn, btn].forEach(card => {
-                            card.classList.remove('border-duo-orange', 'bg-duo-orange');
-                            card.classList.add('bg-duo-red', 'text-white');
+                            card.classList.remove('is-selected');
+                            card.classList.add('is-wrong');
                         });
                         this.gameSelectedCard = null;
                         setTimeout(() => {
-                            [firstBtn, btn].forEach(card => card.classList.remove('bg-duo-red', 'text-white'));
+                            [firstBtn, btn].forEach(card => card.classList.remove('is-wrong'));
                         }, 650);
                     }
                 }
