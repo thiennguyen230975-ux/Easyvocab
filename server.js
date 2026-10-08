@@ -359,9 +359,11 @@ app.get('/', (req, res) => {
           <div class="g_id_signin w-full" data-type="standard"></div>
         </div>
 
-        <button onclick="handleFacebookLogin()" class="w-full py-2 px-4 bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow">
-          <i class="fa-brands fa-facebook-f text-base"></i> Tiếp tục với Facebook
-        </button>
+        <fb:login-button
+          scope="public_profile,email"
+          onlogin="checkLoginState();"
+          data-size="large">
+        </fb:login-button>
       </div>
 
       <div class="relative flex py-1 items-center">
@@ -480,6 +482,10 @@ app.get('/', (req, res) => {
       }
     }
 
+    function checkLoginState() {
+      FB.getLoginStatus(handleFacebookLoginStatus);
+    }
+
     async function authenticateFacebookAccessToken(accessToken) {
       try {
         const res = await fetch('/api/auth/facebook', {
@@ -500,28 +506,6 @@ app.get('/', (req, res) => {
         console.error('Không thể xác thực phiên Facebook:', error);
         alert(error.message || 'Không thể đăng nhập bằng Facebook lúc này.');
       }
-    }
-
-    function handleFacebookLogin() {
-      if (!facebookAppId) {
-        alert('Đăng nhập Facebook chưa được cấu hình. Vui lòng thêm FACEBOOK_APP_ID trên Render!');
-        return;
-      }
-
-      if (typeof FB === 'undefined') {
-        alert('Facebook SDK chưa sẵn sàng hoặc bị trình chặn quảng cáo (AdBlock) chặn!');
-        return;
-      }
-
-      skipFacebookAutoLogin = false;
-      sessionStorage.removeItem('skipFacebookAutoLogin');
-      FB.login(function(response) {
-        if (response.authResponse) {
-          authenticateFacebookAccessToken(response.authResponse.accessToken);
-        } else {
-          alert('Người dùng đã hủy đăng nhập Facebook.');
-        }
-      }, { scope: 'public_profile,email' });
     }
 
     async function handleLogin(e) {
