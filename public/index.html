@@ -147,7 +147,7 @@
             background-image: radial-gradient(ellipse at top left, rgba(37, 99, 235, 0.07), transparent 36rem);
             color: #172033;
         }
-        body.dark {
+        html.dark body {
             background-color: #0b1220;
             background-image: radial-gradient(ellipse at top left, rgba(37, 99, 235, 0.13), transparent 40rem);
             color: #e5eaf4;
@@ -268,9 +268,56 @@
         .dark #tab-dashboard > div:nth-of-type(4) > div { background: rgba(18, 28, 45, 0.94) !important; }
         #tab-dashboard > div:nth-of-type(4) h3 { font-size: 1rem; }
         #tab-dashboard > div:nth-of-type(4) > div:first-child .relative { min-height: 13rem; }
+        .tab-content [class*="rounded-3xl"][class*="border"] {
+            border-radius: 1.4rem !important;
+        }
         .tab-content h1, .tab-content h2, .tab-content h3 { letter-spacing: -0.025em; }
         .tab-content button, header button { -webkit-tap-highlight-color: transparent; }
-        .tab-content button:not(:disabled) { transition-duration: 180ms; }
+        .tab-content button:not(:disabled), header button { transition-duration: 180ms; }
+        .tab-content button:not(:disabled):active, header button:active { transform: scale(0.98); }
+        .tab-content input, .tab-content select, .tab-content textarea,
+        #auth-modal input, #settings-modal input, #settings-modal select {
+            border-color: rgba(148, 163, 184, 0.32) !important;
+            transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+        .dark .tab-content input, .dark .tab-content select, .dark .tab-content textarea,
+        .dark #auth-modal input, .dark #settings-modal input, .dark #settings-modal select {
+            border-color: rgba(148, 163, 184, 0.2) !important;
+        }
+        .tab-content input:hover, .tab-content select:hover, .tab-content textarea:hover {
+            border-color: rgba(37, 99, 235, 0.45) !important;
+        }
+        .tab-content > div:first-child > div:first-child p,
+        .tab-content > div:first-child > p {
+            line-height: 1.65;
+        }
+        #quiz-question-view .quiz-option { min-height: 4.1rem; }
+        #tab-game .game-card {
+            min-height: 3.9rem;
+            border-radius: 1.05rem;
+        }
+        #tab-game .game-card:hover:not(.is-matched):not(.is-wrong) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+        .dark #tab-game .game-card:hover:not(.is-matched):not(.is-wrong) {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+        }
+        #tab-vocab > div:first-child { position: relative; }
+        #tab-vocab > div:first-child > div:first-child h2 { font-size: clamp(1.25rem, 2vw, 1.65rem); }
+        #tab-vocab > div:first-child > div:first-child p { max-width: 44rem; line-height: 1.6; }
+        #marquee-container table { min-width: 980px; }
+        #marquee-container thead { position: sticky; top: 0; z-index: 2; }
+        #marquee-container th { white-space: nowrap; }
+        #tab-leaderboard #leaderboard-podium > div { backdrop-filter: blur(8px); }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
         #quiz-question-view .quiz-option:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 18px rgba(37, 99, 235, 0.1);
@@ -292,8 +339,25 @@
             header > div:first-child { min-width: 0; }
             header > div:last-child { justify-content: flex-start; }
             main { padding-top: 1.25rem !important; }
+            #tab-dashboard { gap: 1rem; }
+            #tab-dashboard > div:first-child { padding: 1.25rem !important; border-radius: 1.35rem !important; }
+            #tab-dashboard > div:first-child h1 { font-size: 1.45rem; line-height: 1.25; }
+            #tab-dashboard > div:first-child > div:last-child { display: grid; grid-template-columns: 1fr; }
+            #tab-dashboard > div:first-child > div:last-child button { justify-content: center; }
+            #tab-dashboard > div:nth-of-type(3) { gap: 0.65rem; }
+            #tab-dashboard > div:nth-of-type(3) > div { padding: 0.9rem !important; border-radius: 1rem !important; }
+            #tab-dashboard > div:nth-of-type(3) > div > div:nth-child(2) { font-size: 1.45rem; }
             #tab-dashboard > div:first-child { align-items: stretch; }
-            #tab-dashboard > div:first-child > div:last-child { flex-wrap: wrap; }
+            #tab-dashboard > div:nth-of-type(4) > div { padding: 1rem !important; }
+            #quiz-container { padding: 1rem !important; }
+            #tab-game > div { padding: 1rem !important; }
+            #game-board-container { gap: 0.6rem; }
+            #game-board-container > div { min-width: 0; }
+            #game-board-container .game-card { padding: 0.75rem !important; font-size: 0.75rem; overflow-wrap: anywhere; }
+            #marquee-container { border-radius: 1.1rem !important; }
+            #tab-vocab > div:first-child { padding: 1rem !important; }
+            #tab-vocab > div:first-child > div:first-child { align-items: stretch; }
+            #tab-vocab > div:first-child > div:first-child > div:last-child { justify-content: flex-start; }
         }
     </style>
 </head>
@@ -382,7 +446,7 @@
 
         <!-- Mobile Navigation Subbar -->
         <div class="md:hidden flex items-center justify-start gap-1 border-t border-notion-border dark:border-notion-darkBorder py-2 px-2 text-xs font-medium overflow-x-auto">
-            <button onclick="app.switchTab('dashboard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Analytics</button>
+            <button onclick="app.switchTab('dashboard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Thống kê</button>
             <button onclick="app.switchTab('vocab')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Từ vựng</button>
             <button onclick="app.switchTab('flashcard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Flashcards</button>
             <button onclick="app.switchTab('quiz')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Quiz</button>
