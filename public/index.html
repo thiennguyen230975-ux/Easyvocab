@@ -68,6 +68,19 @@
             z-index: 50;
         }
 
+        .vocab-row .row-checkbox {
+            opacity: 0;
+            transition: opacity 150ms ease-in-out;
+        }
+        .vocab-row:hover .row-checkbox,
+        .vocab-row:focus-within .row-checkbox,
+        .vocab-row .row-checkbox:checked {
+            opacity: 1;
+        }
+        @media (hover: none) {
+            .vocab-row .row-checkbox { opacity: 1; }
+        }
+
         /* Glassmorphism Effects */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
@@ -339,6 +352,7 @@
 
             <!-- Vocabulary Table Container with Drag Marquee Selection -->
             <div id="marquee-container" class="relative rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm overflow-hidden select-none">
+                <p class="px-4 pt-3 text-xs text-slate-500">Rê chuột vào hàng để hiện ô chọn; chọn nhiều từ rồi bấm “Xóa Đã Chọn”. Trên điện thoại, ô chọn luôn hiển thị.</p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-black/5 dark:bg-white/5 border-b border-notion-border dark:border-notion-darkBorder text-slate-500 font-bold uppercase tracking-wider">
@@ -1215,7 +1229,7 @@
                     return `
                         <tr class="vocab-row hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isChecked ? 'bg-duo-blue/10' : ''}" data-id="${v.id}">
                             <td class="p-3.5 text-center">
-                                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-duo-blue" ${isChecked ? 'checked' : ''} onchange="app.toggleSelectRow('${v.id}', this.checked)">
+                                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-duo-blue focus:ring-duo-blue" aria-label="Chọn ${v.word}" ${isChecked ? 'checked' : ''} onchange="app.toggleSelectRow('${v.id}', this.checked)">
                             </td>
                             <td class="p-3.5 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                 <span>${v.word}</span>
