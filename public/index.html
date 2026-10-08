@@ -1295,13 +1295,23 @@
             }
 
             initFlashcards() {
-                const sets = Array.from(new Set(this.vocabs.map(v => v.set || 'Mặc định')));
                 const select = document.getElementById('flashcard-set-select');
-                select.innerHTML = `<option value="ALL">Tất cả Bộ từ (${this.vocabs.length})</option>` + sets.map(s => `<option value="${s}">${s}</option>`).join('');
+                const selectedSet = select.value || 'ALL';
+                const sets = Array.from(new Set(this.vocabs.map(v => (v.set || 'Mặc định').trim())));
+                const options = [new Option(`Tất cả Bộ từ (${this.vocabs.length})`, 'ALL')];
+                sets.forEach(set => options.push(new Option(set, set)));
+                select.replaceChildren(...options);
+                select.value = sets.includes(selectedSet) ? selectedSet : 'ALL';
 
                 this.flashcardIndex = 0;
                 this.isFlipped = false;
                 this.renderCurrentCard();
+            }
+
+            getFlashcardPool() {
+                const selectedSet = document.getElementById('flashcard-set-select').value;
+                if (selectedSet === 'ALL') return this.vocabs;
+                return this.vocabs.filter(v => (v.set || 'Mặc định').trim() === selectedSet);
             }
 
             renderCurrentCard() {
@@ -1309,12 +1319,16 @@
                 cardInner.classList.remove('rotate-y-180');
                 this.isFlipped = false;
 
-                const selectedSet = document.getElementById('flashcard-set-select').value;
-                const pool = selectedSet === 'ALL' ? this.vocabs : this.vocabs.filter(v => v.set === selectedSet);
-
+                const pool = this.getFlashcardPool();
                 document.getElementById('card-total-count').textContent = pool.length;
                 if (pool.length === 0) {
-                    document.getElementById('card-word-text').textContent = "Trống";
+                    document.getElementById('card-current-idx').textContent = '0';
+                    document.getElementById('card-word-text').textContent = 'Bộ từ chưa có từ vựng';
+                    document.getElementById('card-ipa-text').textContent = '';
+                    document.getElementById('card-pos-badge').textContent = '';
+                    document.getElementById('card-example-text').textContent = '';
+                    document.getElementById('card-meaning-text').textContent = 'Hãy thêm từ vào bộ này trong Kho Từ Vựng.';
+                    document.getElementById('card-example-vn-text').textContent = '';
                     return;
                 }
 
@@ -1337,8 +1351,8 @@
             }
 
             rateSRS(quality) {
-                const selectedSet = document.getElementById('flashcard-set-select').value;
-                const pool = selectedSet === 'ALL' ? this.vocabs : this.vocabs.filter(v => v.set === selectedSet);
+                const pool = this.getFlashcardPool();
+                if (pool.length === 0) return;
                 const card = pool[this.flashcardIndex % pool.length];
 
                 // SM-2 Spaced Repetition Algorithm Logic
