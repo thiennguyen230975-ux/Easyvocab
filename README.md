@@ -21,6 +21,6 @@ The homepage uses the VocabMind learning dashboard in `public/index.html`. Googl
 
 Create and manage vocabulary decks from the **Kho Từ Vựng** tab. Deck names and vocabulary are saved in the current browser, and newly created decks are available in the flashcard selector.
 
-The vocabulary importer accepts Excel, CSV, TXT, PDF, and Word `.docx` files. Document imports need selectable text and a table with English/Word and Meaning/Translation columns, or text lines in the form `word | meaning`. Scanned image-only PDFs and legacy `.doc` files are not supported.
+The vocabulary importer accepts Excel, CSV, TXT, PDF, and Word `.docx` files. It recognizes common English/Vietnamese meaning and IPA/pronunciation column names regardless of their order. Document imports need selectable text and a table with English/Word and Meaning/Translation columns, or text lines in the form `word | meaning`. Scanned image-only PDFs and legacy `.doc` files are not supported. Existing saved records with IPA in the meaning field are corrected automatically when the IPA and meaning fields are clearly swapped; practice modes omit records whose Vietnamese meaning is still missing.
 
 The built-in sample words use British English IPA (Anh-Anh). When existing browser data contains the previous sample transcriptions, the app updates those defaults once while preserving custom IPA values.
