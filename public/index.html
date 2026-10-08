@@ -1619,16 +1619,23 @@
         class VocabMindApp {
             constructor() {
                 /* Initialize State */
-                this.user = JSON.parse(localStorage.getItem('vm_user')) || {
+                const savedUser = JSON.parse(localStorage.getItem('vm_user') || 'null') || {};
+                this.user = {
                     loggedIn: false,
-                    name: '',
+                    name: typeof savedUser.name === 'string' ? savedUser.name : '',
                     email: '',
-                    avatar: '🎓',
-                    xp: 1240,
-                    streak: 5,
-                    level: 3
+                    avatar: AVATARS.includes(savedUser.avatar) ? savedUser.avatar : '🎓',
+                    xp: Number.isSafeInteger(savedUser.xp) && savedUser.xp >= 0 ? savedUser.xp : 1240,
+                    streak: Number.isSafeInteger(savedUser.streak) && savedUser.streak >= 0 ? savedUser.streak : 5,
+                    level: Number.isSafeInteger(savedUser.level) && savedUser.level > 0 ? savedUser.level : 3
                 };
-                this.user.loggedIn = false;
+                localStorage.setItem('vm_user', JSON.stringify({
+                    name: this.user.name,
+                    avatar: this.user.avatar,
+                    xp: this.user.xp,
+                    streak: this.user.streak,
+                    level: this.user.level
+                }));
 
                 let storedVocabs = JSON.parse(localStorage.getItem('vm_vocabs')) || DEFAULT_VOCAB_DATA;
                 let savedSets = JSON.parse(localStorage.getItem('vm_vocab_sets')) || [];
@@ -1946,7 +1953,13 @@
             saveState() {
                 localStorage.setItem('vm_vocabs', JSON.stringify(this.vocabs));
                 localStorage.setItem('vm_vocab_sets', JSON.stringify(this.vocabSets));
-                localStorage.setItem('vm_user', JSON.stringify(this.user));
+                localStorage.setItem('vm_user', JSON.stringify({
+                    name: this.user.name,
+                    avatar: this.user.avatar,
+                    xp: this.user.xp,
+                    streak: this.user.streak,
+                    level: this.user.level
+                }));
             }
 
             addXP(amount) {
@@ -2187,7 +2200,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 2.651 2.651M8 16l3.5-.7L20 6.8a1.875 1.875 0 0 0-2.65-2.65l-8.5 8.5L8 16Zm-3 4h14"></path></svg>
                                     <span>Sửa</span>
                                 </button>
-                                <button onclick="app.deleteWord('${v.id}')" class="p-1 text-duo-red hover:bg-duo-red/10 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                <button type="button" data-vocab-action="delete" class="p-1 text-duo-red hover:bg-duo-red/10 rounded-lg" aria-label="Xóa ${escapeHTML(v.word)}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                             </td>
                         </tr>
                     `;
@@ -3161,17 +3174,17 @@
                 podium.innerHTML = `
                     <div class="text-center space-y-1 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30">
                         <div class="text-2xl sm:text-3xl">🥈</div>
-                        <div class="text-xs font-black truncate">${mockLeaders[1]?.name || 'Nam'}</div>
+                        <div class="text-xs font-black truncate">${escapeHTML(mockLeaders[1]?.name || 'Nam')}</div>
                         <div class="text-[10px] text-amber-500 font-bold">${mockLeaders[1]?.xp || 0} XP</div>
                     </div>
                     <div class="text-center space-y-1 p-4 rounded-2xl bg-duo-yellow/20 border border-duo-yellow scale-105 shadow-lg">
                         <div class="text-3xl sm:text-4xl">👑</div>
-                        <div class="text-xs font-black truncate">${mockLeaders[0]?.name || 'Minh Anh'}</div>
+                        <div class="text-xs font-black truncate">${escapeHTML(mockLeaders[0]?.name || 'Minh Anh')}</div>
                         <div class="text-xs text-duo-yellow font-black">${mockLeaders[0]?.xp || 0} XP</div>
                     </div>
                     <div class="text-center space-y-1 p-3 rounded-2xl bg-orange-500/10 border border-orange-500/30">
                         <div class="text-2xl sm:text-3xl">🥉</div>
-                        <div class="text-xs font-black truncate">${mockLeaders[2]?.name || 'Bảo'}</div>
+                        <div class="text-xs font-black truncate">${escapeHTML(mockLeaders[2]?.name || 'Bảo')}</div>
                         <div class="text-[10px] text-orange-500 font-bold">${mockLeaders[2]?.xp || 0} XP</div>
                     </div>
                 `;
@@ -3182,8 +3195,8 @@
                     <div class="flex items-center justify-between p-3 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs font-bold">
                         <div class="flex items-center gap-3">
                             <span class="w-6 text-slate-400 font-mono">#${idx + 4}</span>
-                            <span class="text-base">${item.avatar}</span>
-                            <span>${item.name}</span>
+                            <span class="text-base">${escapeHTML(item.avatar)}</span>
+                            <span>${escapeHTML(item.name)}</span>
                         </div>
                         <div class="flex items-center gap-4">
                             <span class="text-duo-orange">🔥 ${item.streak} ngày</span>

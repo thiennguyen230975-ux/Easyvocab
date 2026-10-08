@@ -82,23 +82,8 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Database giả lập
-const DB_USERS = process.env.NODE_ENV === 'production' ? [] : [
-    { 
-        id: 1, 
-        username: 'user', 
-        email: 'user@example.com',
-        role: 'user', 
-        passwordHash: bcrypt.hashSync('password123', 10) 
-    },
-    { 
-        id: 2, 
-        username: 'admin', 
-        email: 'admin@example.com',
-        role: 'admin', 
-        passwordHash: bcrypt.hashSync('admin123', 10) 
-    }
-];
+// In-memory user store; accounts are provisioned through verified OAuth.
+const DB_USERS = [];
 
 // Bộ nhớ tạm lưu OTP
 const OTP_STORE = new Map();
