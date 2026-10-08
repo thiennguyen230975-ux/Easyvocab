@@ -399,6 +399,8 @@ app.get('/', (req, res) => {
 
   <script>
     let currentUser = null;
+    let authStatusPromise = null;
+    let skipFacebookAutoLogin = sessionStorage.getItem('skipFacebookAutoLogin') === 'true';
     const vocabList = [
       { word: 'Resilient', meaning: 'Kiên cường', phonetic: '/rɪˈzɪl.jənt/' },
       { word: 'Meticulous', meaning: 'Tỉ mỉ', phonetic: '/məˈtɪk.jə.ləs/' }
@@ -414,6 +416,11 @@ app.get('/', (req, res) => {
         version    : 'v18.0'
       });
       FB.AppEvents.logPageView();
+      checkAuthStatus().then(() => {
+        if (!currentUser && !skipFacebookAutoLogin) {
+          FB.getLoginStatus(handleFacebookLoginStatus);
+        }
+      });
     };
 
     if (facebookAppId) {
@@ -433,13 +440,21 @@ app.get('/', (req, res) => {
       initChart();
     });
 
-    async function checkAuthStatus() {
-      try {
-        const res = await fetch('/api/me');
-        const data = await res.json();
-        currentUser = data.loggedIn ? data.user : null;
-      } catch (e) {}
-      updateUI();
+    function checkAuthStatus() {
+      if (!authStatusPromise) {
+        authStatusPromise = (async () => {
+          try {
+            const res = await fetch('/api/me');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Không thể kiểm tra trạng thái đăng nhập.');
+            currentUser = data.loggedIn ? data.user : null;
+          } catch (error) {
+            console.error('Không thể kiểm tra phiên đăng nhập:', error);
+          }
+          updateUI();
+        })();
+      }
+      return authStatusPromise;
     }
 
     function updateUI() {
@@ -459,6 +474,34 @@ app.get('/', (req, res) => {
     }
 
     // Xử lý Đăng Nhập Facebook Client
+    function handleFacebookLoginStatus(response) {
+      if (response.status === 'connected' && response.authResponse) {
+        authenticateFacebookAccessToken(response.authResponse.accessToken);
+      }
+    }
+
+    async function authenticateFacebookAccessToken(accessToken) {
+      try {
+        const res = await fetch('/api/auth/facebook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'Đăng nhập Facebook thất bại!');
+        }
+        currentUser = data.user;
+        skipFacebookAutoLogin = false;
+        sessionStorage.removeItem('skipFacebookAutoLogin');
+        closeLoginModal();
+        updateUI();
+      } catch (error) {
+        console.error('Không thể xác thực phiên Facebook:', error);
+        alert(error.message || 'Không thể đăng nhập bằng Facebook lúc này.');
+      }
+    }
+
     function handleFacebookLogin() {
       if (!facebookAppId) {
         alert('Đăng nhập Facebook chưa được cấu hình. Vui lòng thêm FACEBOOK_APP_ID trên Render!');
@@ -470,26 +513,11 @@ app.get('/', (req, res) => {
         return;
       }
 
+      skipFacebookAutoLogin = false;
+      sessionStorage.removeItem('skipFacebookAutoLogin');
       FB.login(function(response) {
         if (response.authResponse) {
-          const accessToken = response.authResponse.accessToken;
-          // Gửi Token về Backend xác thực
-          fetch('/api/auth/facebook', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accessToken })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              currentUser = data.user;
-              closeLoginModal();
-              updateUI();
-              alert('Đăng nhập Facebook thành công!');
-            } else {
-              alert(data.message);
-            }
-          });
+          authenticateFacebookAccessToken(response.authResponse.accessToken);
         } else {
           alert('Người dùng đã hủy đăng nhập Facebook.');
         }
@@ -533,6 +561,8 @@ app.get('/', (req, res) => {
     async function handleLogout() {
       await fetch('/api/logout', { method: 'POST' });
       currentUser = null;
+      skipFacebookAutoLogin = true;
+      sessionStorage.setItem('skipFacebookAutoLogin', 'true');
       updateUI();
       switchTab('analytics');
     }
