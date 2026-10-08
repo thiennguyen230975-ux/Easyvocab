@@ -392,6 +392,243 @@
             #tab-vocab > div:first-child > div:first-child { align-items: stretch; }
             #tab-vocab > div:first-child > div:first-child > div:last-child { justify-content: flex-start; }
         }
+        body {
+            background-color: #f3f6fc;
+            background-image:
+                radial-gradient(ellipse at 8% 0%, rgba(96, 165, 250, 0.13), transparent 34rem),
+                radial-gradient(ellipse at 92% 18%, rgba(167, 139, 250, 0.09), transparent 32rem);
+        }
+        html.dark body {
+            background-color: #0a1020;
+            background-image:
+                radial-gradient(ellipse at 8% 0%, rgba(37, 99, 235, 0.18), transparent 38rem),
+                radial-gradient(ellipse at 92% 18%, rgba(124, 58, 237, 0.1), transparent 34rem);
+        }
+        header.glass-panel {
+            border-bottom-color: rgba(148, 163, 184, 0.16);
+            box-shadow: 0 10px 32px rgba(15, 23, 42, 0.055);
+        }
+        .dark header.glass-panel {
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.24);
+        }
+        main {
+            max-width: 1440px !important;
+            padding-top: clamp(1.5rem, 3vw, 2.75rem) !important;
+            padding-bottom: clamp(2rem, 5vw, 4rem) !important;
+        }
+        .tab-content {
+            animation: tab-enter 260ms ease both;
+        }
+        @keyframes tab-enter {
+            from { opacity: 0; transform: translateY(7px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #tab-dashboard > div:first-child {
+            min-height: 13rem;
+            padding: clamp(1.5rem, 4vw, 2.75rem) !important;
+            background:
+                radial-gradient(ellipse at 86% 10%, rgba(255, 255, 255, 0.8), transparent 28rem),
+                linear-gradient(122deg, #e9f2ff 0%, #f4f2ff 58%, #f8faff 100%) !important;
+            box-shadow: 0 18px 44px rgba(37, 99, 235, 0.08) !important;
+        }
+        .dark #tab-dashboard > div:first-child {
+            background:
+                radial-gradient(ellipse at 86% 10%, rgba(59, 130, 246, 0.14), transparent 28rem),
+                linear-gradient(122deg, #142445 0%, #1c1b38 58%, #111b2d 100%) !important;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2) !important;
+        }
+        #tab-dashboard > div:first-child h1 {
+            max-width: 48rem;
+            line-height: 1.18;
+            letter-spacing: -0.045em;
+        }
+        #tab-dashboard > div:first-child > div:last-child button {
+            min-height: 3.1rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+        }
+        #tab-dashboard > div:nth-of-type(3) > div {
+            position: relative;
+            overflow: hidden;
+            min-height: 9.5rem;
+            border-radius: 1.35rem !important;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.045) !important;
+        }
+        #tab-dashboard > div:nth-of-type(3) > div::after {
+            content: "";
+            position: absolute;
+            width: 5rem;
+            height: 5rem;
+            right: -2rem;
+            bottom: -2rem;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.045);
+            pointer-events: none;
+        }
+        .dark #tab-dashboard > div:nth-of-type(3) > div {
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16) !important;
+        }
+        #tab-dashboard > div:nth-of-type(3) > div:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 38px rgba(37, 99, 235, 0.11) !important;
+        }
+        #tab-dashboard > div:nth-of-type(4) > div,
+        #quiz-container,
+        #tab-game > div,
+        #tab-leaderboard > div {
+            border-radius: 1.5rem !important;
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.055) !important;
+        }
+        .dark #tab-dashboard > div:nth-of-type(4) > div,
+        .dark #quiz-container,
+        .dark #tab-game > div,
+        .dark #tab-leaderboard > div {
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2) !important;
+        }
+        #tab-dashboard > div:nth-of-type(4) > div h3 {
+            letter-spacing: -0.035em;
+        }
+        #tab-vocab > div:first-child,
+        #marquee-container {
+            border-radius: 1.5rem !important;
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.055) !important;
+        }
+        .dark #tab-vocab > div:first-child,
+        .dark #marquee-container {
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2) !important;
+        }
+        #tab-vocab > div:first-child {
+            padding: clamp(1.1rem, 2.5vw, 1.75rem) !important;
+        }
+        #tab-vocab > div:first-child > div:first-child {
+            row-gap: 1rem;
+        }
+        #tab-vocab > div:first-child > div:first-child > div:last-child > button {
+            min-height: 2.75rem;
+            border-radius: 0.95rem;
+        }
+        #tab-vocab > div:first-child > div:nth-child(2) > div:nth-child(2) {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            align-items: stretch;
+        }
+        #tab-vocab > div:first-child > div:nth-child(2) > div:nth-child(2) select {
+            min-width: 0;
+        }
+        #tab-vocab > div:first-child > div:nth-child(2) > div:nth-child(2) button {
+            white-space: nowrap;
+        }
+        #marquee-container thead {
+            background: #f4f7fc !important;
+        }
+        .dark #marquee-container thead {
+            background: #182337 !important;
+        }
+        #marquee-container th {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            color: #64748b;
+            letter-spacing: 0.075em;
+        }
+        .dark #marquee-container th { color: #a8b6cc; }
+        #vocab-table-body td { line-height: 1.55; }
+        #marquee-container .ipa-transcription,
+        #card-ipa-text {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            font-variant-ligatures: none;
+            letter-spacing: normal;
+            word-spacing: normal;
+            white-space: nowrap;
+        }
+        #vocab-table-body .topic-group-row td {
+            background: linear-gradient(90deg, rgba(219, 234, 254, 0.68), rgba(238, 242, 255, 0.62)) !important;
+        }
+        .dark #vocab-table-body .topic-group-row td {
+            background: linear-gradient(90deg, rgba(30, 58, 100, 0.48), rgba(49, 46, 129, 0.24)) !important;
+        }
+        #vocab-table-body .topic-row-select {
+            min-height: 2.35rem;
+            border-radius: 0.75rem;
+        }
+        .quiz-tab-btn {
+            min-height: 2.8rem;
+            padding-inline: 0.75rem;
+            color: #64748b;
+        }
+        .quiz-tab-btn:hover { background: rgba(37, 99, 235, 0.08); }
+        .dark .quiz-tab-btn { color: #a8b4c8; }
+        #quiz-question-view .quiz-option {
+            border-radius: 1rem;
+            line-height: 1.5;
+        }
+        #tab-game #game-board-container .game-card {
+            padding: 1.1rem;
+            line-height: 1.5;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.035);
+        }
+        #tab-flashcard #flashcard-inner {
+            border-color: rgba(148, 163, 184, 0.22) !important;
+            box-shadow: 0 28px 72px rgba(30, 64, 175, 0.14);
+        }
+        .dark #tab-flashcard #flashcard-inner {
+            border-color: rgba(148, 163, 184, 0.16) !important;
+            box-shadow: 0 28px 72px rgba(0, 0, 0, 0.32);
+        }
+        #tab-flashcard #flashcard-inner > div:first-child {
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(96, 165, 250, 0.075), transparent 65%),
+                #fff;
+        }
+        #tab-flashcard #flashcard-inner > div:nth-child(2) {
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(52, 211, 153, 0.09), transparent 65%),
+                #fff;
+        }
+        .dark #tab-flashcard #flashcard-inner > div:first-child {
+            background-image:
+                radial-gradient(ellipse at 50% 0%, rgba(96, 165, 250, 0.11), transparent 65%),
+                #182337;
+        }
+        .dark #tab-flashcard #flashcard-inner > div:nth-child(2) {
+            background-image:
+                radial-gradient(ellipse at 50% 0%, rgba(52, 211, 153, 0.12), transparent 65%),
+                #182337;
+        }
+        input, select, textarea {
+            border-radius: 0.8rem;
+        }
+        button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline-color: rgba(37, 99, 235, 0.55);
+            outline-offset: 3px;
+        }
+        @media (max-width: 767px) {
+            main { padding-inline: 0.85rem !important; }
+            header > div:first-child { padding-inline: 0.85rem; }
+            #tab-dashboard > div:first-child {
+                min-height: auto;
+                background:
+                    radial-gradient(ellipse at 100% 0%, rgba(255, 255, 255, 0.72), transparent 20rem),
+                    linear-gradient(145deg, #e9f2ff, #f4f2ff 72%, #f8faff) !important;
+            }
+            .dark #tab-dashboard > div:first-child {
+                background:
+                    radial-gradient(ellipse at 100% 0%, rgba(59, 130, 246, 0.14), transparent 20rem),
+                    linear-gradient(145deg, #142445, #1c1b38 72%, #111b2d) !important;
+            }
+            #tab-dashboard > div:nth-of-type(3) > div { min-height: 8.5rem; }
+            #tab-vocab > div:first-child > div:first-child > div:last-child {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            #tab-vocab > div:first-child > div:first-child > div:last-child > button { justify-content: center; }
+            #tab-vocab > div:first-child > div:nth-child(2) { grid-template-columns: minmax(0, 1fr); }
+            #tab-vocab > div:first-child > div:nth-child(2) > div:nth-child(2) {
+                grid-template-columns: minmax(0, 1fr) auto auto;
+            }
+            #marquee-container { border-radius: 1.15rem !important; }
+            #tab-game #game-board-container .game-card { min-height: 4rem; padding: 0.75rem; }
+            .quiz-tab-btn { font-size: 0.68rem; line-height: 1.35; }
+        }
     </style>
 </head>
 <body class="bg-notion-bg dark:bg-notion-darkBg text-notion-text dark:text-notion-darkText min-h-screen flex flex-col font-sans transition-colors duration-200 selection:bg-duo-blue/30">
@@ -731,7 +968,7 @@
                         <div class="space-y-3">
                             <h2 id="card-word-text" class="text-4xl sm:text-5xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Perseverance</h2>
                             <div class="flex items-center justify-center gap-2">
-                                <span id="card-ipa-text" class="text-base text-slate-500 font-mono">/ˌpɜː.sɪˈvɪə.rəns/</span>
+                                <span id="card-ipa-text" class="ipa-transcription text-base text-slate-500 font-mono">/ˌpɜː.sɪˈvɪə.rəns/</span>
                                 <button onclick="event.stopPropagation(); app.speakWord()" class="p-2 rounded-full bg-duo-blue/10 text-duo-blue hover:scale-110 transition-transform" title="Nghe phát âm">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
                                 </button>
@@ -1134,14 +1371,19 @@
             .trim();
 
         const isIpaTranscription = value => /^\/[^/]+\/$/.test(String(value || '').trim());
+        const normalizeIpaTranscription = value => {
+            const transcription = String(value || '').trim();
+            if (!isIpaTranscription(transcription)) return transcription;
+            return `/${transcription.slice(1, -1).replace(/\s+/g, '')}/`;
+        };
 
         const normalizeVocabularyFields = vocab => {
             const normalized = { ...vocab };
             const meaning = String(normalized.meaning || '').trim();
-            const ipa = String(normalized.ipa || '').trim();
+            const ipa = normalizeIpaTranscription(normalized.ipa);
             if (isIpaTranscription(meaning) && ipa && !isIpaTranscription(ipa)) {
-                normalized.meaning = ipa;
-                normalized.ipa = meaning;
+                normalized.meaning = normalizeIpaTranscription(ipa);
+                normalized.ipa = normalizeIpaTranscription(meaning);
             } else {
                 normalized.meaning = meaning;
                 normalized.ipa = ipa;
@@ -1150,6 +1392,73 @@
                 ? String(normalized.topic).trim()
                 : classifyVocabularyTopic(normalized);
             return normalized;
+        };
+        const IMPORTED_VOCAB_REPAIRS = [
+            {
+                sourceWord: 'phán',
+                sourceMeaning: 'trade agreement',
+                word: 'Negotiate',
+                pos: 'verb',
+                meaning: 'Đàm phán',
+                example: 'The two countries are trying to negotiate a trade agreement. (Hai quốc gia đang cố gắng đàm phán một thỏa thuận thương mại.)'
+            },
+            {
+                sourceWord: 'nghề',
+                sourceMeaning: 'skills relevant to the job market',
+                word: 'Vocational',
+                pos: 'adjective',
+                meaning: 'Dạy nghề',
+                example: 'Vocational education equips students with skills relevant to the job market. (Giáo dục nghề nghiệp trang bị cho sinh viên những kỹ năng phù hợp với thị trường lao động.)'
+            },
+            {
+                sourceWord: 'hữu cơ',
+                sourceMeaning: 'sử dụng bao bì có',
+                word: 'Compostable',
+                pos: 'adjective',
+                meaning: 'Có thể phân hủy thành phân hữu cơ',
+                example: 'Many companies are now using compostable packaging to reduce waste and protect the environment. (Nhiều công ty hiện đang sử dụng bao bì có thể phân hủy để giảm thiểu rác thải và bảo vệ môi trường.)'
+            },
+            {
+                sourceWord: 'nghệ',
+                sourceMeaning: 'đồ dùng công nghệ mới giúp cho những công việc hàng',
+                word: 'Gadget',
+                pos: 'noun',
+                meaning: 'Đồ dùng công nghệ',
+                example: 'He loves exploring new gadgets that make everyday tasks easier and more enjoyable. (Anh ấy thích khám phá các đồ dùng công nghệ mới giúp cho những công việc hàng ngày trở nên dễ dàng và thú vị hơn.)'
+            },
+            {
+                sourceWord: 'kinh',
+                sourceMeaning: 'kinh doanh thúc đẩy sự đổi mới và phát',
+                word: 'Entrepreneurship',
+                pos: 'noun',
+                meaning: 'Tinh thần kinh doanh',
+                example: 'Entrepreneurship fosters innovation and drives economic development. (Tinh thần kinh doanh thúc đẩy sự đổi mới và phát triển kinh tế.)'
+            },
+            {
+                sourceWord: 'tài chính',
+                sourceMeaning: 'bị buộc tội liên quan đến tiền bạc',
+                word: 'White-collar crime',
+                pos: 'noun',
+                meaning: 'Tội phạm liên quan đến tiền bạc và tài chính',
+                example: 'The company executive was charged with multiple white-collar crimes. (Giám đốc điều hành công ty đã bị buộc tội liên quan đến tiền bạc và tài chính.)'
+            }
+        ];
+        const repairImportedVocabulary = vocab => {
+            const isIeltsImportedSet = String(vocab.set || '').toLocaleLowerCase().includes('ielts 7.0')
+                && String(vocab.set || '').toLocaleLowerCase().includes('imported:');
+            if (!isIeltsImportedSet) return vocab;
+
+            const sourceWord = normalizeTopicText(vocab.word).trim();
+            const sourceMeaning = normalizeTopicText(vocab.meaning);
+            const repair = IMPORTED_VOCAB_REPAIRS.find(item =>
+                sourceWord === normalizeTopicText(item.sourceWord).trim()
+                && sourceMeaning.includes(normalizeTopicText(item.sourceMeaning).trim())
+            );
+            if (!repair) return vocab;
+
+            const corrected = { ...vocab, word: repair.word, pos: repair.pos, meaning: repair.meaning, example: repair.example };
+            corrected.topic = classifyVocabularyTopic(corrected);
+            return corrected;
         };
         const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({
             '&': '&amp;',
@@ -1186,11 +1495,11 @@
                     localStorage.setItem('vm_vocab_sets', JSON.stringify(savedSets));
                     localStorage.setItem(VOCAB_SET_REMOVAL_MIGRATION_KEY, 'true');
                 }
-                this.vocabs = storedVocabs;
                 let migratedVocabulary = false;
-                this.vocabs = this.vocabs.map(vocab => {
-                    const normalized = normalizeVocabularyFields(vocab);
-                    if (normalized.meaning !== vocab.meaning || normalized.ipa !== vocab.ipa || normalized.topic !== vocab.topic) {
+                this.vocabs = storedVocabs.map(vocab => {
+                    const repaired = repairImportedVocabulary(vocab);
+                    const normalized = normalizeVocabularyFields(repaired);
+                    if (normalized.word !== vocab.word || normalized.meaning !== vocab.meaning || normalized.ipa !== vocab.ipa || normalized.topic !== vocab.topic || normalized.example !== vocab.example || normalized.pos !== vocab.pos) {
                         migratedVocabulary = true;
                     }
                     const correction = DEFAULT_IPA_CORRECTIONS[vocab.word];
@@ -1664,7 +1973,7 @@
                                 <span>${escapeHTML(v.word)}</span>
                                 <button data-vocab-action="speak" class="text-duo-blue hover:scale-110" aria-label="Phát âm ${escapeHTML(v.word)}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg></button>
                             </td>
-                            <td class="p-3.5 font-mono text-slate-400">${escapeHTML(v.ipa || '-')}</td>
+                            <td class="p-3.5 font-mono text-slate-400"><span class="ipa-transcription">${escapeHTML(v.ipa || '-')}</span></td>
                             <td class="p-3.5 uppercase font-semibold text-[10px] text-slate-500">${escapeHTML(v.pos || 'noun')}</td>
                             <td class="p-3.5 font-medium text-duo-green">${escapeHTML(v.meaning)}</td>
                             <td class="p-3.5 text-slate-400 italic max-w-xs truncate" title="${escapeHTML(v.example || '')}">${escapeHTML(v.example || '-')}</td>
