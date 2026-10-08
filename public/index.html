@@ -683,6 +683,9 @@
             #tab-game #game-board-container .game-card { min-height: 4rem; padding: 0.75rem; }
             .quiz-tab-btn { font-size: 0.68rem; line-height: 1.35; }
         }
+        #cookie-consent-banner {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
     </style>
 </head>
 <body class="bg-notion-bg dark:bg-notion-darkBg text-notion-text dark:text-notion-darkText min-h-screen flex flex-col font-sans transition-colors duration-200 selection:bg-duo-blue/30">
@@ -1184,6 +1187,34 @@
         </section>
     </main>
 
+    <footer class="mx-auto w-full max-w-7xl px-4 pb-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <button type="button" onclick="app.openCookieSettings()" class="rounded-lg px-3 py-2 hover:bg-black/5 hover:text-duo-blue dark:hover:bg-white/5">
+            Cài đặt cookie
+        </button>
+    </footer>
+
+    <section id="cookie-consent-banner" class="fixed inset-x-0 bottom-0 z-[60] hidden px-4 pt-4" role="dialog" aria-labelledby="cookie-consent-title" aria-describedby="cookie-consent-description" aria-modal="false">
+        <div class="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border border-notion-border bg-white/95 p-5 shadow-2xl backdrop-blur-xl dark:border-notion-darkBorder dark:bg-slate-900/95 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div class="max-w-2xl space-y-1.5">
+                <h2 id="cookie-consent-title" class="text-base font-black text-slate-900 dark:text-white">Cookie trên Easyvocab</h2>
+                <p id="cookie-consent-description" class="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                    Cookie thiết yếu được dùng để duy trì phiên đăng nhập. Từ vựng và giao diện được lưu trong bộ nhớ trình duyệt, không phải cookie. Hiện Easyvocab không dùng cookie phân tích hay quảng cáo.
+                </p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Lựa chọn được lưu trên thiết bị này; bạn có thể đổi lại trong “Cài đặt cookie”.
+                </p>
+            </div>
+            <div class="flex shrink-0 flex-col gap-2 sm:min-w-48">
+                <button type="button" onclick="app.saveCookieConsent('all')" class="rounded-xl bg-duo-blue px-4 py-2.5 text-xs font-bold text-white transition hover:bg-duo-blueDark">
+                    Đồng ý tất cả
+                </button>
+                <button type="button" onclick="app.saveCookieConsent('necessary')" class="rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                    Chỉ cookie thiết yếu
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- ==================== AUTH MODAL ==================== -->
     <div id="auth-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="w-full max-w-md rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-2xl p-6 sm:p-8 space-y-6 animate-pop">
@@ -1668,6 +1699,7 @@
 
             init() {
                 this.setupTheme();
+                this.initCookieConsent();
                 this.updateHeaderUser();
                 this.renderAuthButton();
                 this.sessionCheckPromise = this.restoreSession();
@@ -1848,6 +1880,26 @@
             setupTheme() {
                 const savedTheme = localStorage.getItem('vm_theme') || 'light';
                 document.documentElement.className = savedTheme;
+            }
+
+            initCookieConsent() {
+                if (!localStorage.getItem('vm_cookie_consent_v1')) {
+                    document.getElementById('cookie-consent-banner').classList.remove('hidden');
+                }
+            }
+
+            openCookieSettings() {
+                document.getElementById('cookie-consent-banner').classList.remove('hidden');
+            }
+
+            saveCookieConsent(choice) {
+                if (!['all', 'necessary'].includes(choice)) return;
+                localStorage.setItem('vm_cookie_consent_v1', JSON.stringify({
+                    necessary: true,
+                    optional: choice === 'all',
+                    savedAt: new Date().toISOString()
+                }));
+                document.getElementById('cookie-consent-banner').classList.add('hidden');
             }
 
             toggleDarkMode() {
