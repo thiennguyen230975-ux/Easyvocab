@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VocabMind Pro - Nền Tảng Học Từ Vựng Thông Minh</title>
+    <meta name="description" content="VocabMind giúp bạn học từ vựng hiệu quả với flashcard, ôn tập thông minh, quiz và bộ từ cá nhân.">
+    <meta name="theme-color" content="#f5f7fb">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <!-- Tailwind CSS CDN -->
@@ -138,6 +141,100 @@
             100% { transform: scale(1); opacity: 1; }
         }
         .animate-pop { animation: pop-in 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        body {
+            background-color: #f5f7fb;
+            background-image: radial-gradient(ellipse at top left, rgba(37, 99, 235, 0.07), transparent 36rem);
+            color: #172033;
+        }
+        body.dark {
+            background-color: #0b1220;
+            background-image: radial-gradient(ellipse at top left, rgba(37, 99, 235, 0.13), transparent 40rem);
+            color: #e5eaf4;
+        }
+        header.glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            border-color: rgba(148, 163, 184, 0.2);
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+        }
+        .dark header.glass-panel {
+            background: rgba(12, 20, 35, 0.9);
+            border-color: rgba(148, 163, 184, 0.12);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.14);
+        }
+        .brand-mark {
+            background: linear-gradient(145deg, #2563eb, #4f46e5) !important;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24) !important;
+        }
+        .brand-wordmark {
+            color: #172554 !important;
+            background: none !important;
+            -webkit-text-fill-color: currentColor !important;
+        }
+        .dark .brand-wordmark { color: #f1f5ff !important; }
+        .brand-caption { color: #71809a; }
+        .dark .brand-caption { color: #94a3b8; }
+        nav[aria-label="Điều hướng chính"] {
+            background: rgba(241, 245, 249, 0.78) !important;
+            border-color: rgba(148, 163, 184, 0.18) !important;
+        }
+        .dark nav[aria-label="Điều hướng chính"] {
+            background: rgba(255, 255, 255, 0.045) !important;
+            border-color: rgba(148, 163, 184, 0.12) !important;
+        }
+        .nav-btn { color: #64748b; }
+        .nav-btn:hover { color: #1d4ed8; background: rgba(37, 99, 235, 0.07); }
+        .nav-btn.text-duo-blue {
+            color: #1d4ed8 !important;
+            background: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+        }
+        .dark .nav-btn { color: #a8b4c8; }
+        .dark .nav-btn.text-duo-blue {
+            color: #bfdbfe !important;
+            background: #1e293b !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        }
+        .mobile-nav-btn { white-space: nowrap; color: #64748b; }
+        .mobile-nav-btn.active {
+            color: #1d4ed8;
+            background: rgba(37, 99, 235, 0.1);
+            font-weight: 700;
+        }
+        .dark .mobile-nav-btn { color: #a8b4c8; }
+        .dark .mobile-nav-btn.active { color: #bfdbfe; background: rgba(37, 99, 235, 0.2); }
+        header > div:last-child {
+            scrollbar-width: none;
+        }
+        header > div:last-child::-webkit-scrollbar { display: none; }
+        main { padding-top: 2rem !important; }
+        main .tab-content > div[class*="rounded-3xl"],
+        main .tab-content > div > div[class*="rounded-3xl"] {
+            border-color: rgba(148, 163, 184, 0.2) !important;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.045) !important;
+        }
+        .dark main .tab-content > div[class*="rounded-3xl"],
+        .dark main .tab-content > div > div[class*="rounded-3xl"] {
+            border-color: rgba(148, 163, 184, 0.12) !important;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16) !important;
+        }
+        #tab-dashboard > div:first-child {
+            background: linear-gradient(120deg, #eef4ff, #f7f8ff 58%, #f1f5f9) !important;
+            border-color: rgba(37, 99, 235, 0.14) !important;
+        }
+        .dark #tab-dashboard > div:first-child {
+            background: linear-gradient(120deg, #172440, #171d31 58%, #151d2b) !important;
+            border-color: rgba(96, 165, 250, 0.18) !important;
+        }
+        .tab-content h1, .tab-content h2, .tab-content h3 { letter-spacing: -0.025em; }
+        .tab-content button, header button { -webkit-tap-highlight-color: transparent; }
+        @media (max-width: 767px) {
+            header > div:first-child { min-width: 0; }
+            header > div:last-child { justify-content: flex-start; }
+            main { padding-top: 1.25rem !important; }
+            #tab-dashboard > div:first-child { align-items: stretch; }
+            #tab-dashboard > div:first-child > div:last-child { flex-wrap: wrap; }
+        }
     </style>
 </head>
 <body class="bg-notion-bg dark:bg-notion-darkBg text-notion-text dark:text-notion-darkText min-h-screen flex flex-col font-sans transition-colors duration-200 selection:bg-duo-blue/30">
@@ -147,17 +244,24 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <!-- Brand Logo -->
             <div class="flex items-center gap-3 cursor-pointer select-none" onclick="app.switchTab('dashboard')">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-duo-blue to-duo-purple flex items-center justify-center text-white shadow-md shadow-duo-blue/20">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <div class="brand-mark w-10 h-10 rounded-xl flex items-center justify-center text-white">
+                    <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                        <path d="M5.5 8.5c4.2-1 7.7-.1 10.5 2.2v14c-2.8-2.3-6.3-3.2-10.5-2.2v-14Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M26.5 8.5c-4.2-1-7.7-.1-10.5 2.2v14c2.8-2.3 6.3-3.2 10.5-2.2v-14Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="m22.7 3 .9 2.4L26 6.3l-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9.9-2.4Z" fill="#FDE68A"/>
+                    </svg>
                 </div>
-                <div>
-                    <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-duo-blue via-duo-purple to-duo-orange bg-clip-text text-transparent">VocabMind</span>
-                    <span class="ml-1 text-xs px-1.5 py-0.5 rounded-full bg-duo-green/10 text-duo-green font-bold uppercase tracking-wide">PRO</span>
+                <div class="leading-tight">
+                    <div class="flex items-center gap-1.5">
+                        <span class="brand-wordmark font-extrabold text-xl tracking-tight">VocabMind</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-blue-600/10 text-blue-700 dark:text-blue-300 font-bold uppercase tracking-wider">LEARN</span>
+                    </div>
+                    <span class="brand-caption text-[10px] font-medium">Không gian học từ vựng</span>
                 </div>
             </div>
 
             <!-- Navigation Links -->
-            <nav class="hidden md:flex items-center space-x-1 bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-notion-border dark:border-notion-darkBorder">
+            <nav aria-label="Điều hướng chính" class="hidden md:flex items-center space-x-1 bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-notion-border dark:border-notion-darkBorder">
                 <button onclick="app.switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     <span>Thống kê ôn tập</span>
@@ -174,7 +278,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                     <span>Luyện Tập Quiz</span>
                 </button>
-                <button onclick="app.switchTab('game')" id="nav-game" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5 text-duo-orange font-semibold">
+                <button onclick="app.switchTab('game')" id="nav-game" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     <span>Ghép từ nhanh</span>
                 </button>
@@ -217,12 +321,12 @@
         </div>
 
         <!-- Mobile Navigation Subbar -->
-        <div class="md:hidden flex items-center justify-around border-t border-notion-border dark:border-notion-darkBorder py-2 px-1 text-xs font-medium overflow-x-auto">
+        <div class="md:hidden flex items-center justify-start gap-1 border-t border-notion-border dark:border-notion-darkBorder py-2 px-2 text-xs font-medium overflow-x-auto">
             <button onclick="app.switchTab('dashboard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Analytics</button>
             <button onclick="app.switchTab('vocab')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Từ vựng</button>
             <button onclick="app.switchTab('flashcard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Flashcards</button>
             <button onclick="app.switchTab('quiz')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Quiz</button>
-            <button onclick="app.switchTab('game')" class="mobile-nav-btn px-2.5 py-1 rounded-lg text-duo-orange font-bold">Ghép từ nhanh</button>
+            <button onclick="app.switchTab('game')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Ghép từ nhanh</button>
             <button onclick="app.switchTab('leaderboard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">BXH</button>
         </div>
     </header>
@@ -1147,6 +1251,9 @@
                 });
                 const activeNav = document.getElementById(`nav-${tabId}`);
                 if (activeNav) activeNav.classList.add('bg-duo-blue/10', 'text-duo-blue', 'font-bold');
+                document.querySelectorAll('.mobile-nav-btn').forEach((btn, index) => {
+                    btn.classList.toggle('active', ['dashboard', 'vocab', 'flashcard', 'quiz', 'game', 'leaderboard'][index] === tabId);
+                });
 
                 if (tabId === 'dashboard') this.renderDashboard();
                 if (tabId === 'vocab') this.renderVocabTable();
