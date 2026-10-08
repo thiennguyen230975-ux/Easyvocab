@@ -275,6 +275,28 @@
         .tab-content button, header button { -webkit-tap-highlight-color: transparent; }
         .tab-content button:not(:disabled), header button { transition-duration: 180ms; }
         .tab-content button:not(:disabled):active, header button:active { transform: scale(0.98); }
+        .tab-content#tab-flashcard:not(.hidden) {
+            display: flex;
+            width: 100%;
+            align-items: center;
+        }
+        #tab-flashcard > div:first-child {
+            width: min(100%, 900px);
+            margin-inline: auto;
+        }
+        #tab-flashcard > div:nth-child(2) {
+            width: min(100%, 900px);
+            height: clamp(24rem, 62vh, 36rem);
+            margin: 0.75rem auto 0;
+        }
+        #tab-flashcard #flashcard-inner { border-radius: 2rem; }
+        #tab-flashcard #flashcard-inner > div { padding: clamp(1.25rem, 4vw, 3rem); }
+        #tab-flashcard #card-word-text {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            line-height: 1.08;
+            overflow-wrap: anywhere;
+        }
+        #tab-flashcard #card-meaning-text { line-height: 1.2; }
         .tab-content input, .tab-content select, .tab-content textarea,
         #auth-modal input, #settings-modal input, #settings-modal select {
             border-color: rgba(148, 163, 184, 0.32) !important;
@@ -349,6 +371,17 @@
             #tab-dashboard > div:nth-of-type(3) > div > div:nth-child(2) { font-size: 1.45rem; }
             #tab-dashboard > div:first-child { align-items: stretch; }
             #tab-dashboard > div:nth-of-type(4) > div { padding: 1rem !important; }
+            #tab-flashcard { gap: 1rem; }
+            #tab-flashcard > div:first-child { gap: 0.75rem; }
+            #tab-flashcard > div:first-child select { min-width: 0; max-width: 72%; }
+            #tab-flashcard > div:nth-child(2) {
+                height: clamp(24rem, 64svh, 32rem);
+                margin-top: 0.25rem;
+            }
+            #tab-flashcard #flashcard-inner { border-radius: 1.5rem; }
+            #tab-flashcard #flashcard-inner > div { padding: 1.25rem; }
+            #tab-flashcard #card-word-text { font-size: clamp(2.25rem, 10vw, 3.5rem); }
+            #tab-flashcard #card-meaning-text { font-size: clamp(1.5rem, 7vw, 2.25rem); }
             #quiz-container { padding: 1rem !important; }
             #tab-game > div { padding: 1rem !important; }
             #game-board-container { gap: 0.6rem; }
@@ -672,7 +705,7 @@
             </div>
 
             <!-- Interactive 3D Card Container -->
-            <div class="w-full max-w-xl h-80 sm:h-96 perspective-1000 cursor-pointer my-4" onclick="app.flipCard()">
+            <div class="w-full max-w-4xl h-80 sm:h-96 perspective-1000 cursor-pointer my-4" onclick="app.flipCard()">
                 <div id="flashcard-inner" class="relative w-full h-full rounded-3xl transition-transform duration-500 transform-style-3d shadow-xl border border-notion-border dark:border-notion-darkBorder bg-notion-card dark:bg-notion-darkCard">
                     <!-- Front Side -->
                     <div class="absolute inset-0 w-full h-full rounded-3xl p-8 backface-hidden flex flex-col justify-between items-center text-center">
