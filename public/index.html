@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocabMind Pro - Nền Tảng Học Từ Vựng Thông Minh</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        notion: {
+                            bg: '#FBFBFA',
+                            darkBg: '#191919',
+                            card: '#FFFFFF',
+                            darkCard: '#202020',
+                            border: '#E9E9E7',
+                            darkBorder: '#2F2F2F',
+                            text: '#37352F',
+                            darkText: '#D4D4D4'
+                        },
+                        duo: {
+                            green: '#58CC02',
+                            greenDark: '#46A302',
+                            blue: '#1CB0F6',
+                            blueDark: '#1899D6',
+                            orange: '#FF9600',
+                            yellow: '#FFC800',
+                            red: '#FF4B4B',
+                            purple: '#CE82FF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX/CSV Import) CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* Custom Styles for 3D Flashcard & Marquee Selection */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        .marquee-selection-box {
+            position: absolute;
+            border: 2px dashed #1CB0F6;
+            background-color: rgba(28, 176, 246, 0.15);
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Glassmorphism Effects */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-panel {
+            background: rgba(32, 32, 32, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+        /* Keyframe Animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-pulse-ring { animation: pulse-ring 2s infinite ease-in-out; }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: pop-in 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    </style>
+</head>
+<body class="bg-notion-bg dark:bg-notion-darkBg text-notion-text dark:text-notion-darkText min-h-screen flex flex-col font-sans transition-colors duration-200 selection:bg-duo-blue/30">
+
+    <!-- MAIN NAVBAR -->
+    <header class="sticky top-0 z-40 w-full border-b border-notion-border dark:border-notion-darkBorder glass-panel">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 cursor-pointer select-none" onclick="app.switchTab('dashboard')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-duo-blue to-duo-purple flex items-center justify-center text-white shadow-md shadow-duo-blue/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <div>
+                    <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-duo-blue via-duo-purple to-duo-orange bg-clip-text text-transparent">VocabMind</span>
+                    <span class="ml-1 text-xs px-1.5 py-0.5 rounded-full bg-duo-green/10 text-duo-green font-bold uppercase tracking-wide">PRO</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-1 bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-notion-border dark:border-notion-darkBorder">
+                <button onclick="app.switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span>Thống kê ôn tập</span>
+                </button>
+                <button onclick="app.switchTab('vocab')" id="nav-vocab" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    <span>Kho Từ Vựng</span>
+                </button>
+                <button onclick="app.switchTab('flashcard')" id="nav-flashcard" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <span>Flashcards 3D</span>
+                </button>
+                <button onclick="app.switchTab('quiz')" id="nav-quiz" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    <span>Luyện Tập Quiz</span>
+                </button>
+                <button onclick="app.switchTab('game')" id="nav-game" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5 text-duo-orange font-semibold">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <span>Ghép từ nhanh</span>
+                </button>
+                <button onclick="app.switchTab('leaderboard')" id="nav-leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                    <span>BXH</span>
+                </button>
+            </nav>
+
+            <!-- User Gamification Indicators & Profile Bar -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Streak Badge -->
+                <div class="flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 text-duo-orange px-2.5 py-1 rounded-xl text-xs sm:text-sm font-bold" title="Chuỗi ngày học liên tiếp">
+                    <span class="text-base animate-bounce">🔥</span>
+                    <span id="header-streak-val">5</span>
+                </div>
+
+                <!-- XP Badge -->
+                <div class="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-2.5 py-1 rounded-xl text-xs sm:text-sm font-bold" title="Tổng điểm kinh nghiệm (XP)">
+                    <span class="text-base">⚡</span>
+                    <span id="header-xp-val">1,240</span>
+                </div>
+
+                <!-- Level Pill -->
+                <div class="hidden sm:flex items-center gap-1 bg-duo-purple/10 border border-duo-purple/20 text-duo-purple px-2 py-1 rounded-xl text-xs font-bold">
+                    <span>Lv.<span id="header-level-val">3</span></span>
+                </div>
+
+                <!-- User Profile / Auth Action -->
+                <div id="auth-button-container" class="ml-1">
+                    <!-- Dynamic rendering: Logged In Avatar or Login Button -->
+                </div>
+
+                <!-- Dark Mode Toggle Button -->
+                <button onclick="app.toggleDarkMode()" class="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title="Đổi giao diện Sáng/Tối">
+                    <svg id="theme-icon-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="theme-icon-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Subbar -->
+        <div class="md:hidden flex items-center justify-around border-t border-notion-border dark:border-notion-darkBorder py-2 px-1 text-xs font-medium overflow-x-auto">
+            <button onclick="app.switchTab('dashboard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Analytics</button>
+            <button onclick="app.switchTab('vocab')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Từ vựng</button>
+            <button onclick="app.switchTab('flashcard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Flashcards</button>
+            <button onclick="app.switchTab('quiz')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">Quiz</button>
+            <button onclick="app.switchTab('game')" class="mobile-nav-btn px-2.5 py-1 rounded-lg text-duo-orange font-bold">Ghép từ nhanh</button>
+            <button onclick="app.switchTab('leaderboard')" class="mobile-nav-btn px-2.5 py-1 rounded-lg">BXH</button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- ==================== TAB 1: DASHBOARD & SRS ANALYTICS ==================== -->
+        <section id="tab-dashboard" class="tab-content space-y-6 animate-pop">
+            <!-- Top Welcome Banner -->
+            <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-duo-blue/10 via-duo-purple/10 to-transparent border border-duo-blue/20 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-2 text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-duo-blue/10 text-duo-blue font-bold text-xs uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-duo-blue animate-ping"></span> Spaced Repetition System Active
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Chào mừng trở lại, <span id="dash-user-name" class="text-duo-blue">Học Viên</span>! 👋</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 max-w-xl">Hôm nay bạn có <span id="dash-due-count" class="font-bold text-duo-red">12 từ vựng</span> cần ôn tập theo đường cong quên trí nhớ. Hãy tiếp tục giữ thói quen rèn luyện nhé!</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="app.switchTab('flashcard')" class="px-5 py-3 rounded-2xl bg-duo-blue hover:bg-duo-blueDark text-white font-bold text-sm shadow-lg shadow-duo-blue/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                        <span>Ôn Tập Flashcards</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                    <button onclick="app.switchTab('game')" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-duo-orange to-amber-500 hover:brightness-110 text-white font-bold text-sm shadow-lg shadow-duo-orange/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                        <span>⚡ Ghép từ nhanh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats KPI Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-5 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-2">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                        <span>TỔNG TỪ VỰNG</span>
+                        <span class="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">📚</span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black" id="dash-stat-total">0</div>
+                    <div class="text-xs text-slate-400">Đã nạp vào kho từ vựng</div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-2">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                        <span>ĐÃ THÀNH THẠO</span>
+                        <span class="p-1.5 rounded-lg bg-duo-green/10 text-duo-green">🏆</span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black text-duo-green" id="dash-stat-mastered">0</div>
+                    <div class="text-xs text-slate-400">Mức độ Easy / Mastered</div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-2">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                        <span>TỶ LỆ GHI NHỚ</span>
+                        <span class="p-1.5 rounded-lg bg-duo-purple/10 text-duo-purple">🧠</span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black text-duo-purple" id="dash-stat-retention">88%</div>
+                    <div class="text-xs text-slate-400">Đánh giá chính xác Quiz & SRS</div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-2">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                        <span>CHUỖI HỌC (STREAK)</span>
+                        <span class="p-1.5 rounded-lg bg-duo-orange/10 text-duo-orange">🔥</span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black text-duo-orange" id="dash-stat-streak">5 Ngày</div>
+                    <div class="text-xs text-slate-400">Duy trì liên tục</div>
+                </div>
+            </div>
+
+            <!-- SRS Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Donut Chart: SRS Stage Distribution -->
+                <div class="p-6 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="font-bold text-lg">Phân Bổ Giai Đoạn SRS</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Tình trạng ghi nhớ từ vựng hiện tại</p>
+                    </div>
+                    <div class="relative h-56 flex items-center justify-center">
+                        <canvas id="srsDistributionChart"></canvas>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-notion-border dark:border-notion-darkBorder">
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-400 inline-block"></span> Mới: <span id="srs-count-new" class="font-bold">0</span></div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-duo-orange inline-block"></span> Đang học: <span id="srs-count-learning" class="font-bold">0</span></div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-duo-blue inline-block"></span> Ôn tập: <span id="srs-count-review" class="font-bold">0</span></div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-duo-green inline-block"></span> Thành thạo: <span id="srs-count-mastered" class="font-bold">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Bar/Line Chart: Retention Curve & Forecast Schedule -->
+                <div class="lg:col-span-2 p-6 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-4">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <h3 class="font-bold text-lg">Dự Báo Ôn Tập 7 Ngày Tới</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Lịch trình tự động tính toán theo thuật toán Ebbinghaus</p>
+                        </div>
+                        <div class="px-3 py-1 rounded-xl bg-duo-blue/10 text-duo-blue text-xs font-bold">
+                            Chế độ SM-2 Algorithm
+                        </div>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="srsRetentionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: VOCABULARY DATABASE & MARQUEE SELECTION ==================== -->
+        <section id="tab-vocab" class="tab-content space-y-6 hidden">
+            <!-- Header Controls & Search Bar -->
+            <div class="p-6 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-4">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight">Kho Từ Vựng Thông Minh</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Quản lý, kéo thả quét chọn hàng loạt hoặc nhập file Excel/CSV/TXT</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                        <!-- Import File Button -->
+                        <button onclick="document.getElementById('import-file-input').click()" class="px-4 py-2.5 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:bg-black/5 dark:hover:bg-white/5 font-semibold text-xs flex items-center gap-2 transition-all">
+                            <svg class="w-4 h-4 text-duo-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <span>Nhập File Excel/CSV</span>
+                        </button>
+                        <input type="file" id="import-file-input" class="hidden" accept=".xlsx, .xls, .csv, .txt" onchange="app.handleImportFile(event)">
+
+                        <!-- Add Word Button -->
+                        <button onclick="app.openAddWordModal()" class="px-4 py-2.5 rounded-2xl bg-duo-green hover:bg-duo-greenDark text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-duo-green/20 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                            <span>Thêm Từ Mới</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="relative">
+                        <input type="text" id="vocab-search-input" oninput="app.renderVocabTable()" placeholder="Tìm kiếm từ tiếng Anh, IPA, nghĩa..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
+                        <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <select id="vocab-set-filter" onchange="app.renderVocabTable()" class="px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
+                        <option value="ALL">Tất cả Bộ từ vựng</option>
+                        <!-- Dynamic Set Options -->
+                    </select>
+                    <select id="vocab-srs-filter" onchange="app.renderVocabTable()" class="px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
+                        <option value="ALL">Tất cả Trạng thái SRS</option>
+                        <option value="new">Mới (New)</option>
+                        <option value="learning">Đang học (Learning)</option>
+                        <option value="review">Cần ôn tập (Review)</option>
+                        <option value="mastered">Thành thạo (Mastered)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Vocabulary Table Container with Drag Marquee Selection -->
+            <div id="marquee-container" class="relative rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm overflow-hidden select-none">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-black/5 dark:bg-white/5 border-b border-notion-border dark:border-notion-darkBorder text-slate-500 font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-3.5 w-10 text-center">
+                                    <input type="checkbox" id="select-all-checkbox" onchange="app.toggleSelectAll(this.checked)" class="rounded border-slate-300 text-duo-blue focus:ring-duo-blue">
+                                </th>
+                                <th class="p-3.5">Từ Tiếng Anh</th>
+                                <th class="p-3.5">Phát Âm IPA</th>
+                                <th class="p-3.5">Từ Loại</th>
+                                <th class="p-3.5">Nghĩa Tiếng Việt</th>
+                                <th class="p-3.5">Ví Dụ Thực Tế</th>
+                                <th class="p-3.5">Bộ Từ</th>
+                                <th class="p-3.5">Trạng thái ôn tập</th>
+                                <th class="p-3.5 text-center">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vocab-table-body" class="divide-y divide-notion-border dark:divide-notion-darkBorder">
+                            <!-- Dynamic Vocab Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Floating Action Bar for Mass Selected Items -->
+            <div id="floating-action-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 hidden px-6 py-3 rounded-2xl glass-panel border border-duo-blue/30 shadow-2xl flex items-center gap-4 animate-pop">
+                <div class="text-xs font-bold text-duo-blue">
+                    Đã chọn <span id="selected-count" class="text-sm font-black">0</span> từ
+                </div>
+                <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+                <div class="flex items-center gap-2">
+                    <button onclick="app.bulkDelete()" class="px-3 py-1.5 rounded-xl bg-duo-red/10 text-duo-red hover:bg-duo-red hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <span>Xóa Đã Chọn</span>
+                    </button>
+                    <button onclick="app.bulkChangeSet()" class="px-3 py-1.5 rounded-xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        <span>Đổi Bộ Từ</span>
+                    </button>
+                    <button onclick="app.clearSelection()" class="px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
+                        Hủy
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: 3D FLASHCARD DECK ==================== -->
+        <section id="tab-flashcard" class="tab-content space-y-6 hidden flex-col items-center">
+            <!-- Top Controls -->
+            <div class="w-full max-w-xl flex items-center justify-between gap-4">
+                <select id="flashcard-set-select" onchange="app.initFlashcards()" class="px-4 py-2 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder text-xs font-bold">
+                    <!-- Dynamic Options -->
+                </select>
+                <div class="text-xs font-bold text-slate-500">
+                    Thẻ <span id="card-current-idx">1</span> / <span id="card-total-count">10</span>
+                </div>
+            </div>
+
+            <!-- Interactive 3D Card Container -->
+            <div class="w-full max-w-xl h-80 sm:h-96 perspective-1000 cursor-pointer my-4" onclick="app.flipCard()">
+                <div id="flashcard-inner" class="relative w-full h-full rounded-3xl transition-transform duration-500 transform-style-3d shadow-xl border border-notion-border dark:border-notion-darkBorder bg-notion-card dark:bg-notion-darkCard">
+                    <!-- Front Side -->
+                    <div class="absolute inset-0 w-full h-full rounded-3xl p-8 backface-hidden flex flex-col justify-between items-center text-center">
+                        <div class="w-full flex justify-between items-center text-xs text-slate-400 font-bold">
+                            <span id="card-pos-badge" class="px-2.5 py-1 rounded-full bg-duo-blue/10 text-duo-blue uppercase">NOUN</span>
+                            <span>Nhấn để lật thẻ 🔄</span>
+                        </div>
+                        <div class="space-y-3">
+                            <h2 id="card-word-text" class="text-4xl sm:text-5xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Perseverance</h2>
+                            <div class="flex items-center justify-center gap-2">
+                                <span id="card-ipa-text" class="text-base text-slate-500 font-mono">/ˌpɜː.sɪˈvɪə.rəns/</span>
+                                <button onclick="event.stopPropagation(); app.speakWord()" class="p-2 rounded-full bg-duo-blue/10 text-duo-blue hover:scale-110 transition-transform" title="Nghe phát âm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p id="card-example-text" class="text-xs text-slate-400 italic max-w-md">"Persistence in doing something despite difficulty."</p>
+                    </div>
+
+                    <!-- Back Side -->
+                    <div class="absolute inset-0 w-full h-full rounded-3xl p-8 backface-hidden rotate-y-180 flex flex-col justify-between items-center text-center bg-gradient-to-b from-notion-card to-slate-50 dark:from-notion-darkCard dark:to-slate-900">
+                        <div class="w-full flex justify-between items-center text-xs text-slate-400 font-bold">
+                            <span class="text-duo-green">NGHĨA & VÍ DỤ</span>
+                            <span>Mức độ ghi nhớ</span>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 id="card-meaning-text" class="text-2xl sm:text-3xl font-bold text-duo-green">Sự kiên trì, nhẫn nại</h3>
+                            <p id="card-example-vn-text" class="text-xs text-slate-500 dark:text-slate-400 max-w-md">"Sự kiên trì trong công việc giúp đạt thành công."</p>
+                        </div>
+                        
+                        <!-- SRS Rating Buttons (SM-2 Algorithm) -->
+                        <div class="w-full grid grid-cols-4 gap-2 pt-4" onclick="event.stopPropagation()">
+                            <button onclick="app.rateSRS('again')" class="py-2 px-1 rounded-xl bg-duo-red/10 text-duo-red hover:bg-duo-red hover:text-white text-xs font-bold transition-all">
+                                🔴 Quên<br><span class="text-[10px] opacity-75">&lt; 1 phút</span>
+                            </button>
+                            <button onclick="app.rateSRS('hard')" class="py-2 px-1 rounded-xl bg-duo-orange/10 text-duo-orange hover:bg-duo-orange hover:text-white text-xs font-bold transition-all">
+                                🟠 Khó<br><span class="text-[10px] opacity-75">1 ngày</span>
+                            </button>
+                            <button onclick="app.rateSRS('good')" class="py-2 px-1 rounded-xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white text-xs font-bold transition-all">
+                                🟢 Tốt<br><span class="text-[10px] opacity-75">3 ngày</span>
+                            </button>
+                            <button onclick="app.rateSRS('easy')" class="py-2 px-1 rounded-xl bg-duo-green/10 text-duo-green hover:bg-duo-green hover:text-white text-xs font-bold transition-all">
+                                🔵 Dễ<br><span class="text-[10px] opacity-75">7 ngày</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: PRACTICE QUIZ (3 MODES) ==================== -->
+        <section id="tab-quiz" class="tab-content space-y-6 hidden max-w-3xl mx-auto">
+            <!-- Mode Selection Tabs -->
+            <div class="flex items-center justify-center p-1.5 rounded-2xl bg-black/5 dark:bg-white/5 border border-notion-border dark:border-notion-darkBorder text-xs font-bold">
+                <button onclick="app.switchQuizMode('mcq')" id="quiz-mode-mcq" class="quiz-tab-btn flex-1 py-2 rounded-xl text-center transition-all">Trắc Nghiệm 4 Đáp Án</button>
+                <button onclick="app.switchQuizMode('fill')" id="quiz-mode-fill" class="quiz-tab-btn flex-1 py-2 rounded-xl text-center transition-all">Điền Vào Câu Ví Dụ</button>
+                <button onclick="app.switchQuizMode('listen')" id="quiz-mode-listen" class="quiz-tab-btn flex-1 py-2 rounded-xl text-center transition-all">Luyện Nghe Gõ Từ</button>
+            </div>
+
+            <!-- Quiz Main Box -->
+            <div id="quiz-container" class="p-6 sm:p-8 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-6">
+                <!-- Progress Header -->
+                <div class="flex items-center justify-between text-xs font-bold text-slate-500">
+                    <span id="quiz-progress-text">Câu 1 / 5</span>
+                    <span class="text-duo-green" id="quiz-score-text">Đúng: 0</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div id="quiz-progress-bar" class="h-full bg-duo-green transition-all duration-300 w-1/5"></div>
+                </div>
+
+                <!-- Quiz Dynamic Question View -->
+                <div id="quiz-question-view" class="space-y-6 min-h-[220px]">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: MINI-GAME (SPEED WORD MATCH) ==================== -->
+        <section id="tab-game" class="tab-content space-y-6 hidden max-w-4xl mx-auto">
+            <div class="p-6 sm:p-8 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm text-center space-y-6">
+                <!-- Game Header -->
+                <div class="flex items-center justify-between border-b border-notion-border dark:border-notion-darkBorder pb-4">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black text-duo-orange flex items-center gap-2">⚡ Ghép từ tính giờ</h2>
+                        <p class="text-xs text-slate-500">Nối cặp từ Anh - Việt chính xác trước khi hết thời gian!</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block">Combo</span>
+                            <span id="game-combo-text" class="text-xl font-black text-duo-purple animate-pulse">x1</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block">Điểm số</span>
+                            <span id="game-score-text" class="text-2xl font-black text-duo-green">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timer Bar -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold text-slate-400">
+                        <span>Thời gian còn lại</span>
+                        <span id="game-timer-num" class="text-duo-red font-mono font-black text-sm">30s</span>
+                    </div>
+                    <div class="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden p-0.5">
+                        <div id="game-timer-bar" class="h-full bg-duo-red rounded-full transition-all duration-1000 w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Game Grid Boards (English vs Vietnamese Cards) -->
+                <div id="game-board-container" class="min-h-[280px] grid grid-cols-2 gap-4 text-sm font-bold">
+                    <!-- Dynamic cards -->
+                </div>
+
+                <!-- Start / Restart Overlay Button -->
+                <div id="game-start-screen" class="space-y-4 py-8">
+                    <div class="text-5xl animate-bounce">⏱️</div>
+                    <h3 class="text-xl font-black">Sẵn sàng thử thách phản xạ?</h3>
+                    <p class="text-xs text-slate-500 max-w-md mx-auto">Ghép từ càng nhanh, combo nhân điểm càng lớn (+50 XP cho vị trí dẫn đầu!)</p>
+                    <button onclick="app.startGame()" class="px-8 py-3.5 rounded-2xl bg-duo-orange hover:brightness-110 text-white font-black text-base shadow-xl shadow-duo-orange/30 hover:scale-105 active:scale-95 transition-all">
+                        BẮT ĐẦU CHƠI (30s)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 6: LEADERBOARD (BẢNG XẾP HẠNG) ==================== -->
+        <section id="tab-leaderboard" class="tab-content space-y-6 hidden max-w-3xl mx-auto">
+            <div class="p-6 sm:p-8 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl font-black tracking-tight flex items-center justify-center gap-2">
+                        <span>🏆 Bảng Xếp Hạng Cao Thủ</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Vinh danh TOP 10 người học có chuỗi ngày và XP xuất sắc nhất</p>
+                </div>
+
+                <!-- Podium Top 3 -->
+                <div id="leaderboard-podium" class="grid grid-cols-3 gap-2 sm:gap-4 items-end pt-6 pb-4">
+                    <!-- Dynamic Top 3 render -->
+                </div>
+
+                <!-- Rank List 4-10 -->
+                <div id="leaderboard-list" class="space-y-2 pt-2 border-t border-notion-border dark:border-notion-darkBorder">
+                    <!-- Dynamic Rank Items -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== AUTH MODAL ==================== -->
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-2xl p-6 sm:p-8 space-y-6 animate-pop">
+            <div class="flex items-center justify-between border-b border-notion-border dark:border-notion-darkBorder pb-4">
+                <div class="flex items-center gap-2">
+                    <button onclick="app.switchAuthTab('login')" id="auth-tab-login" class="text-lg font-black text-duo-blue border-b-2 border-duo-blue pb-1">Đăng nhập</button>
+                    <button onclick="app.switchAuthTab('register')" id="auth-tab-register" class="text-lg font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 pb-1">Tạo tài khoản</button>
+                </div>
+                <button onclick="app.closeAuthModal()" class="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-slate-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <p id="auth-subtitle" class="text-center text-xs text-slate-500">Đăng nhập hoặc tạo tài khoản nhanh bằng Google hay Facebook.</p>
+                <div id="google-signin-button" class="flex min-h-11 w-full justify-center"></div>
+                <button id="facebook-signin-button" type="button" onclick="app.handleFacebookLogin()" class="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#1877F2] px-4 text-sm font-bold text-white transition hover:bg-[#166fe5] disabled:cursor-not-allowed disabled:opacity-50">
+                    <span class="text-lg font-black" aria-hidden="true">f</span>
+                    <span id="facebook-signin-label">Tiếp tục với Facebook</span>
+                </button>
+                <div id="auth-message" role="status" class="hidden rounded-xl px-3 py-2 text-center text-xs font-semibold"></div>
+                <p id="auth-register-help" class="hidden text-center text-xs text-slate-500">Lần đầu đăng nhập bằng Google hoặc Facebook sẽ tự động tạo tài khoản.</p>
+                <div class="flex items-center gap-3 py-1">
+                    <span class="h-px flex-1 bg-notion-border dark:bg-notion-darkBorder"></span>
+                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Hoặc đăng nhập bằng mật khẩu</span>
+                    <span class="h-px flex-1 bg-notion-border dark:bg-notion-darkBorder"></span>
+                </div>
+            </div>
+
+            <form id="auth-form" onsubmit="app.handleAuthSubmit(event)" class="space-y-4 text-xs font-semibold">
+                <div class="space-y-1">
+                    <label class="text-slate-500">Email học viên</label>
+                    <input type="email" id="auth-email-input" required placeholder="name@example.com" class="w-full px-4 py-2.5 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-slate-500">Mật khẩu</label>
+                    <input type="password" id="auth-pass-input" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                </div>
+                <button type="submit" id="auth-submit-btn" class="w-full py-3 rounded-2xl bg-duo-blue hover:bg-duo-blueDark text-white font-black text-sm shadow-lg shadow-duo-blue/30 transition-all">
+                    Đăng nhập
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== SETTINGS MODAL / DRAWER ==================== -->
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-lg rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-2xl p-6 sm:p-8 space-y-6 animate-pop">
+            <div class="flex items-center justify-between border-b border-notion-border dark:border-notion-darkBorder pb-4">
+                <h3 class="text-xl font-black tracking-tight">Cài đặt và hồ sơ người dùng</h3>
+                <button onclick="app.closeSettingsModal()" class="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-slate-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Profile Info & Avatar Picker -->
+            <div class="space-y-3">
+                <label class="text-xs font-bold text-slate-500">Chọn Avatar Hồ Sơ</label>
+                <div id="avatar-picker-grid" class="grid grid-cols-6 gap-2">
+                    <!-- Dynamic avatars -->
+                </div>
+                <div class="pt-2">
+                    <label class="text-xs font-bold text-slate-500">Đổi Tên Hiển Thị</label>
+                    <input type="text" id="settings-name-input" class="w-full mt-1 px-4 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs font-bold focus:ring-2 focus:ring-duo-blue outline-none">
+                </div>
+            </div>
+
+            <!-- TTS Voice Customizer -->
+            <div class="space-y-3 border-t border-notion-border dark:border-notion-darkBorder pt-4 text-xs font-bold">
+                <h4 class="text-slate-500 uppercase tracking-wider text-[10px]">Tùy Chỉnh Giọng Phát Âm (Web Speech API)</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-slate-400">Chọn Giọng Giảng Viên</label>
+                        <select id="tts-voice-select" onchange="app.updateTTSSettings()" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder">
+                            <!-- Dynamic Speech Voices -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-slate-400">Tốc Độ Nói (Speech Rate)</label>
+                        <select id="tts-rate-select" onchange="app.updateTTSSettings()" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder">
+                            <option value="0.75">Chậm (0.75x)</option>
+                            <option value="1" selected>Bình thường (1.0x)</option>
+                            <option value="1.25">Nhanh (1.25x)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save & Logout Buttons -->
+            <div class="flex items-center justify-between border-t border-notion-border dark:border-notion-darkBorder pt-4">
+                <button onclick="app.logout()" class="px-4 py-2 rounded-xl bg-duo-red/10 text-duo-red hover:bg-duo-red hover:text-white text-xs font-bold transition-all">
+                    Đăng Xuất Tài Khoản
+                </button>
+                <button onclick="app.saveSettings()" class="px-6 py-2.5 rounded-xl bg-duo-blue hover:bg-duo-blueDark text-white text-xs font-bold shadow-md shadow-duo-blue/20 transition-all">
+                    Lưu Thay Đổi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ADD / EDIT WORD MODAL ==================== -->
+    <div id="add-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-2xl p-6 space-y-4 animate-pop">
+            <h3 class="text-xl font-black">Thêm Từ Mới Vào Kho</h3>
+            <form onsubmit="app.saveNewWord(event)" class="space-y-3 text-xs font-semibold">
+                <div>
+                    <label class="text-slate-500">Từ Tiếng Anh</label>
+                    <input type="text" id="add-word-input" required placeholder="e.g. Resilience" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-slate-500">Phiên Âm IPA</label>
+                        <input type="text" id="add-ipa-input" placeholder="/rɪˈzɪl.jəns/" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                    </div>
+                    <div>
+                        <label class="text-slate-500">Từ Loại</label>
+                        <select id="add-pos-input" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder">
+                            <option value="noun">Noun (danh từ)</option>
+                            <option value="verb">Verb (động từ)</option>
+                            <option value="adj">Adjective (tính từ)</option>
+                            <option value="adv">Adverb (trạng từ)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-slate-500">Nghĩa Tiếng Việt</label>
+                    <input type="text" id="add-meaning-input" required placeholder="Sự phục hồi, khả năng chịu đựng" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                </div>
+                <div>
+                    <label class="text-slate-500">Ví Dụ Tiếng Anh</label>
+                    <textarea id="add-example-input" rows="2" placeholder="He showed great resilience during difficult times." class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="text-slate-500">Bộ Từ Vựng</label>
+                    <input type="text" id="add-set-input" placeholder="IELTS Academic" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="app.closeAddModal()" class="px-4 py-2 rounded-xl text-slate-400">Hủy</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-duo-green text-white font-bold shadow-md shadow-duo-green/20">Lưu Từ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        /* VocabMind Pro Core Application Logic */
+        const DEFAULT_VOCAB_DATA = [
+            { id: '1', word: 'Perseverance', ipa: '/ˌpɜː.sɪˈvɪə.rəns/', pos: 'noun', meaning: 'Sự kiên trì, nhẫn nại', example: 'Great achievements require perseverance.', set: 'IELTS Academic', srsStage: 'learning', interval: 1, easeFactor: 2.5, rep: 1, nextReview: Date.now() },
+            { id: '2', word: 'Resilience', ipa: '/rɪˈzɪl.jəns/', pos: 'noun', meaning: 'Khả năng phục hồi nhanh', example: 'Psychological resilience helps in stressful times.', set: 'IELTS Academic', srsStage: 'review', interval: 3, easeFactor: 2.4, rep: 2, nextReview: Date.now() },
+            { id: '3', word: 'Meticulous', ipa: '/mɪˈtɪk.jə.ləs/', pos: 'adj', meaning: 'Tỉ mỉ, cẩn thận từng chi tiết', example: 'She is meticulous about her work.', set: 'IELTS Academic', srsStage: 'mastered', interval: 7, easeFactor: 2.6, rep: 4, nextReview: Date.now() + 86400000 * 3 },
+            { id: '4', word: 'Ambiguity', ipa: '/ˌæm.bɪˈɡjuː.ə.ti/', pos: 'noun', meaning: 'Sự mơ hồ, nhập nhằng', example: 'Avoid ambiguity in formal legal documents.', set: 'TOEIC Essential', srsStage: 'new', interval: 0, easeFactor: 2.5, rep: 0, nextReview: Date.now() },
+            { id: '5', word: 'Coherent', ipa: '/kəʊˈhɪə.rənt/', pos: 'adj', meaning: 'Mạch lạc, chặt chẽ', example: 'The essay was clear and coherent.', set: 'IELTS Academic', srsStage: 'learning', interval: 1, easeFactor: 2.5, rep: 1, nextReview: Date.now() },
+            { id: '6', word: 'Pragmatic', ipa: '/præɡˈmæt.ɪk/', pos: 'adj', meaning: 'Thực tế, thực dụng', example: 'We need a pragmatic solution to this problem.', set: 'TOEIC Essential', srsStage: 'review', interval: 2, easeFactor: 2.3, rep: 2, nextReview: Date.now() },
+            { id: '7', word: 'Elaborate', ipa: '/ɪˈlæb.ər.ət/', pos: 'verb', meaning: 'Giải thích chi tiết', example: 'Could you elaborate on that point?', set: 'Daily Conversation', srsStage: 'new', interval: 0, easeFactor: 2.5, rep: 0, nextReview: Date.now() },
+            { id: '8', word: 'Spontaneous', ipa: '/spɒnˈteɪ.ni.əs/', pos: 'adj', meaning: 'Tự phát, bộc phát', example: 'The crowd burst into spontaneous applause.', set: 'Daily Conversation', srsStage: 'mastered', interval: 14, easeFactor: 2.7, rep: 5, nextReview: Date.now() + 86400000 * 5 }
+        ];
+
+        const AVATARS = ['🎓', '🦁', '🚀', '🦊', '🦉', '⚡', '🤖', '👑', '🐼', '🐉', '🎨', '🌟'];
+
+        class VocabMindApp {
+            constructor() {
+                /* Initialize State */
+                this.user = JSON.parse(localStorage.getItem('vm_user')) || {
+                    loggedIn: false,
+                    name: '',
+                    email: '',
+                    avatar: '🎓',
+                    xp: 1240,
+                    streak: 5,
+                    level: 3
+                };
+                this.user.loggedIn = false;
+
+                this.vocabs = JSON.parse(localStorage.getItem('vm_vocabs')) || DEFAULT_VOCAB_DATA;
+                this.selectedIds = new Set();
+                this.currentTab = 'dashboard';
+                this.quizMode = 'mcq';
+                this.flashcardIndex = 0;
+                this.isFlipped = false;
+                
+                // Audio synth settings
+                this.ttsVoice = null;
+                this.ttsRate = 1.0;
+
+                // Game state
+                this.gameTimer = null;
+                this.gameTimeLeft = 30;
+                this.gameScore = 0;
+                this.gameCombo = 1;
+                this.gameSelectedCard = null;
+
+                // Charts instances
+                this.distChart = null;
+                this.retentionChart = null;
+                this.googleClientId = '';
+                this.facebookAppId = '';
+                this.googleInitialized = false;
+                this.sessionCheckPromise = null;
+            }
+
+            playSFX(type) {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    if (type === 'correct') {
+                        osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                        osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.15); // E5
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.25);
+                    } else if (type === 'wrong') {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(180, ctx.currentTime);
+                        osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.2);
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.2);
+                    } else if (type === 'combo') {
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(440, ctx.currentTime);
+                        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+                        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.3);
+                    }
+                } catch (e) {
+                    console.log('Audio Context Error:', e);
+                }
+            }
+
+            init() {
+                this.setupTheme();
+                this.updateHeaderUser();
+                this.renderAuthButton();
+                this.sessionCheckPromise = this.restoreSession();
+                this.initializeSocialAuth();
+                this.initTTSVoices();
+                this.switchTab('dashboard');
+                this.setupMarqueeDragSelection();
+
+                // Speech Synthesis Voice Loading Event
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.onvoiceschanged = () => this.initTTSVoices();
+                }
+            }
+
+            async restoreSession() {
+                try {
+                    const response = await fetch('/api/me');
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Không thể kiểm tra phiên đăng nhập.');
+                    if (data.loggedIn) this.setAuthenticatedUser(data.user);
+                } catch (error) {
+                    console.error('Không thể khôi phục phiên đăng nhập:', error);
+                }
+                this.updateHeaderUser();
+                this.renderAuthButton();
+            }
+
+            async initializeSocialAuth() {
+                try {
+                    const response = await fetch('/api/config');
+                    const config = await response.json();
+                    if (!response.ok) throw new Error('Không thể tải cấu hình đăng nhập.');
+                    this.googleClientId = config.googleClientId || '';
+                    this.facebookAppId = config.facebookAppId || '';
+                } catch (error) {
+                    console.error('Không thể tải cấu hình đăng nhập:', error);
+                }
+
+                const facebookButton = document.getElementById('facebook-signin-button');
+                if (this.facebookAppId) {
+                    facebookButton.disabled = false;
+                    this.loadFacebookSdk();
+                } else {
+                    facebookButton.disabled = true;
+                    facebookButton.title = 'Chưa cấu hình FACEBOOK_APP_ID trên Render.';
+                }
+
+                this.renderGoogleButton();
+            }
+
+            renderGoogleButton() {
+                const container = document.getElementById('google-signin-button');
+                if (!this.googleClientId) {
+                    container.innerHTML = '<span class="self-center text-xs text-slate-400">Đăng nhập Google chưa được cấu hình.</span>';
+                    return;
+                }
+                if (!window.google?.accounts?.id) {
+                    const script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+                    if (script) script.addEventListener('load', () => this.renderGoogleButton(), { once: true });
+                    return;
+                }
+
+                if (!this.googleInitialized) {
+                    window.google.accounts.id.initialize({
+                        client_id: this.googleClientId,
+                        callback: response => this.handleGoogleCredentialResponse(response)
+                    });
+                    this.googleInitialized = true;
+                }
+
+                container.replaceChildren();
+                window.google.accounts.id.renderButton(container, {
+                    type: 'standard',
+                    theme: document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline',
+                    size: 'large',
+                    text: this.authTab === 'register' ? 'signup_with' : 'continue_with',
+                    shape: 'rectangular',
+                    logo_alignment: 'left',
+                    width: Math.max(220, Math.min(400, container.clientWidth || 400))
+                });
+            }
+
+            loadFacebookSdk() {
+                if (document.getElementById('facebook-jssdk')) return;
+                window.fbAsyncInit = () => {
+                    window.FB.init({
+                        appId: this.facebookAppId,
+                        cookie: true,
+                        xfbml: false,
+                        version: 'v18.0'
+                    });
+                    window.FB.AppEvents.logPageView();
+                    this.sessionCheckPromise.then(() => {
+                        if (!this.user.loggedIn && sessionStorage.getItem('skipFacebookAutoLogin') !== 'true') {
+                            this.checkFacebookLoginState();
+                        }
+                    });
+                };
+
+                const script = document.createElement('script');
+                script.id = 'facebook-jssdk';
+                script.async = true;
+                script.src = 'https://connect.facebook.net/vi_VN/sdk.js';
+                document.head.appendChild(script);
+            }
+
+            checkFacebookLoginState() {
+                if (!window.FB) return;
+                window.FB.getLoginStatus(response => {
+                    if (response.status === 'connected' && response.authResponse) {
+                        this.authenticateSocialAccount('/api/auth/facebook', {
+                            accessToken: response.authResponse.accessToken
+                        });
+                    }
+                });
+            }
+
+            handleFacebookLogin() {
+                if (!this.facebookAppId) {
+                    this.showAuthMessage('Đăng nhập Facebook chưa được cấu hình.', false);
+                    return;
+                }
+                if (!window.FB) {
+                    this.showAuthMessage('Facebook đang tải. Vui lòng thử lại sau giây lát.', false);
+                    return;
+                }
+
+                sessionStorage.removeItem('skipFacebookAutoLogin');
+                window.FB.login(response => {
+                    if (response.authResponse) this.checkFacebookLoginState();
+                    else this.showAuthMessage('Bạn đã hủy đăng nhập Facebook.', false);
+                }, { scope: 'public_profile,email' });
+            }
+
+            async handleGoogleCredentialResponse(response) {
+                await this.authenticateSocialAccount('/api/auth/google', { credential: response.credential });
+            }
+
+            async authenticateSocialAccount(endpoint, credentials) {
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(credentials)
+                    });
+                    const data = await response.json();
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Không thể đăng nhập bằng tài khoản mạng xã hội.');
+                    }
+                    this.setAuthenticatedUser(data.user);
+                    this.closeAuthModal();
+                    this.showAuthMessage('Đăng nhập thành công.', true);
+                } catch (error) {
+                    this.showAuthMessage(error.message || 'Đăng nhập thất bại. Vui lòng thử lại.', false);
+                }
+            }
+
+            setAuthenticatedUser(user) {
+                this.user.loggedIn = true;
+                this.user.email = user.email || '';
+                this.user.name = user.username || user.name || this.user.email.split('@')[0] || 'Học viên';
+                sessionStorage.removeItem('skipFacebookAutoLogin');
+                this.saveState();
+                this.updateHeaderUser();
+                this.renderAuthButton();
+            }
+
+            showAuthMessage(message, success) {
+                const element = document.getElementById('auth-message');
+                element.textContent = message;
+                element.className = `rounded-xl px-3 py-2 text-center text-xs font-semibold ${success ? 'bg-duo-green/10 text-duo-green' : 'bg-duo-red/10 text-duo-red'}`;
+                element.classList.remove('hidden');
+            }
+
+            setupTheme() {
+                const savedTheme = localStorage.getItem('vm_theme') || 'light';
+                document.documentElement.className = savedTheme;
+            }
+
+            toggleDarkMode() {
+                const isDark = document.documentElement.classList.contains('dark');
+                const newTheme = isDark ? 'light' : 'dark';
+                document.documentElement.className = newTheme;
+                localStorage.setItem('vm_theme', newTheme);
+            }
+
+            saveState() {
+                localStorage.setItem('vm_vocabs', JSON.stringify(this.vocabs));
+                localStorage.setItem('vm_user', JSON.stringify(this.user));
+            }
+
+            addXP(amount) {
+                this.user.xp += amount;
+                this.user.level = Math.floor(this.user.xp / 400) + 1;
+                this.saveState();
+                this.updateHeaderUser();
+            }
+
+            updateHeaderUser() {
+                document.getElementById('header-streak-val').textContent = this.user.streak;
+                document.getElementById('header-xp-val').textContent = this.user.xp.toLocaleString();
+                document.getElementById('header-level-val').textContent = this.user.level;
+                document.getElementById('dash-user-name').textContent = this.user.name || 'Học viên';
+            }
+
+            renderAuthButton() {
+                const container = document.getElementById('auth-button-container');
+                if (this.user.loggedIn) {
+                    container.innerHTML = `
+                        <button onclick="app.openSettingsModal()" class="flex items-center gap-2 px-3 py-1 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder hover:border-duo-blue transition-all">
+                            <span class="text-lg">${this.user.avatar}</span>
+                            <span class="hidden sm:inline font-bold text-xs">${this.user.name}</span>
+                        </button>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <button onclick="app.openAuthModal()" class="px-4 py-1.5 rounded-xl bg-duo-blue hover:bg-duo-blueDark text-white font-bold text-xs shadow-md shadow-duo-blue/20 transition-all">
+                            Đăng nhập
+                        </button>
+                    `;
+                }
+            }
+
+            switchTab(tabId) {
+                this.currentTab = tabId;
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('bg-duo-blue/10', 'text-duo-blue', 'font-bold');
+                });
+                const activeNav = document.getElementById(`nav-${tabId}`);
+                if (activeNav) activeNav.classList.add('bg-duo-blue/10', 'text-duo-blue', 'font-bold');
+
+                if (tabId === 'dashboard') this.renderDashboard();
+                if (tabId === 'vocab') this.renderVocabTable();
+                if (tabId === 'flashcard') this.initFlashcards();
+                if (tabId === 'quiz') this.renderQuizQuestion();
+                if (tabId === 'leaderboard') this.renderLeaderboard();
+            }
+
+            renderDashboard() {
+                const total = this.vocabs.length;
+                const mastered = this.vocabs.filter(v => v.srsStage === 'mastered').length;
+                const learning = this.vocabs.filter(v => v.srsStage === 'learning').length;
+                const review = this.vocabs.filter(v => v.srsStage === 'review').length;
+                const newWords = this.vocabs.filter(v => v.srsStage === 'new').length;
+
+                document.getElementById('dash-stat-total').textContent = total;
+                document.getElementById('dash-stat-mastered').textContent = mastered;
+                document.getElementById('dash-due-count').textContent = `${review + learning} từ vựng`;
+
+                document.getElementById('srs-count-new').textContent = newWords;
+                document.getElementById('srs-count-learning').textContent = learning;
+                document.getElementById('srs-count-review').textContent = review;
+                document.getElementById('srs-count-mastered').textContent = mastered;
+
+                // Render Chart 1: Donut Stage Distribution
+                const ctxDist = document.getElementById('srsDistributionChart').getContext('2d');
+                if (this.distChart) this.distChart.destroy();
+                this.distChart = new Chart(ctxDist, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Mới', 'Đang học', 'Ôn tập', 'Thành thạo'],
+                        datasets: [{
+                            data: [newWords, learning, review, mastered],
+                            backgroundColor: ['#94a3b8', '#FF9600', '#1CB0F6', '#58CC02'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        cutout: '75%'
+                    }
+                });
+
+                // Render Chart 2: 7-Day Review Schedule Bar Chart
+                const ctxRet = document.getElementById('srsRetentionChart').getContext('2d');
+                if (this.retentionChart) this.retentionChart.destroy();
+
+                const days = ['Hôm nay', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+                const reviewData = [review + learning, 4, 8, 3, 12, 5, 9];
+
+                this.retentionChart = new Chart(ctxRet, {
+                    type: 'bar',
+                    data: {
+                        labels: days,
+                        datasets: [{
+                            label: 'Số từ cần ôn tập',
+                            data: reviewData,
+                            backgroundColor: '#1CB0F6',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { grid: { color: 'rgba(150, 150, 150, 0.1)' } }
+                        }
+                    }
+                });
+            }
+
+            renderVocabTable() {
+                const search = document.getElementById('vocab-search-input').value.toLowerCase();
+                const setFilter = document.getElementById('vocab-set-filter').value;
+                const srsFilter = document.getElementById('vocab-srs-filter').value;
+
+                // Render Set Filter Options
+                const sets = Array.from(new Set(this.vocabs.map(v => v.set || 'Mặc định')));
+                const setSelect = document.getElementById('vocab-set-filter');
+                setSelect.innerHTML = `<option value="ALL">Tất cả Bộ từ vựng</option>` + sets.map(s => `<option value="${s}">${s}</option>`).join('');
+                if (setFilter !== 'ALL') setSelect.value = setFilter;
+
+                const filtered = this.vocabs.filter(v => {
+                    const matchSearch = v.word.toLowerCase().includes(search) || v.meaning.toLowerCase().includes(search);
+                    const matchSet = setFilter === 'ALL' || v.set === setFilter;
+                    const matchSrs = srsFilter === 'ALL' || v.srsStage === srsFilter;
+                    return matchSearch && matchSet && matchSrs;
+                });
+
+                const tbody = document.getElementById('vocab-table-body');
+                tbody.innerHTML = filtered.map(v => {
+                    const isChecked = this.selectedIds.has(v.id);
+                    let srsBadge = '<span class="px-2 py-0.5 rounded-full bg-slate-400/10 text-slate-500 font-bold">Mới</span>';
+                    if (v.srsStage === 'learning') srsBadge = '<span class="px-2 py-0.5 rounded-full bg-duo-orange/10 text-duo-orange font-bold">Đang học</span>';
+                    if (v.srsStage === 'review') srsBadge = '<span class="px-2 py-0.5 rounded-full bg-duo-blue/10 text-duo-blue font-bold">Cần ôn</span>';
+                    if (v.srsStage === 'mastered') srsBadge = '<span class="px-2 py-0.5 rounded-full bg-duo-green/10 text-duo-green font-bold">Thành thạo</span>';
+
+                    return `
+                        <tr class="vocab-row hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isChecked ? 'bg-duo-blue/10' : ''}" data-id="${v.id}">
+                            <td class="p-3.5 text-center">
+                                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-duo-blue" ${isChecked ? 'checked' : ''} onchange="app.toggleSelectRow('${v.id}', this.checked)">
+                            </td>
+                            <td class="p-3.5 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <span>${v.word}</span>
+                                <button onclick="app.speakText('${v.word}')" class="text-duo-blue hover:scale-110"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg></button>
+                            </td>
+                            <td class="p-3.5 font-mono text-slate-400">${v.ipa || '-'}</td>
+                            <td class="p-3.5 uppercase font-semibold text-[10px] text-slate-500">${v.pos || 'noun'}</td>
+                            <td class="p-3.5 font-medium text-duo-green">${v.meaning}</td>
+                            <td class="p-3.5 text-slate-400 italic max-w-xs truncate" title="${v.example || ''}">${v.example || '-'}</td>
+                            <td class="p-3.5"><span class="px-2 py-0.5 rounded-lg bg-black/5 dark:bg-white/5 font-semibold text-[11px]">${v.set || 'Mặc định'}</span></td>
+                            <td class="p-3.5">${srsBadge}</td>
+                            <td class="p-3.5 text-center space-x-1">
+                                <button onclick="app.deleteWord('${v.id}')" class="p-1 text-duo-red hover:bg-duo-red/10 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                this.updateFloatingActionBar();
+            }
+
+            /* Marquee Selection Logic */
+            setupMarqueeDragSelection() {
+                const container = document.getElementById('marquee-container');
+                let isDragging = false;
+                let startX, startY, marqueeBox;
+
+                container.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                    isDragging = true;
+                    const rect = container.getBoundingClientRect();
+                    startX = e.clientX - rect.left;
+                    startY = e.clientY - rect.top;
+
+                    marqueeBox = document.createElement('div');
+                    marqueeBox.className = 'marquee-selection-box';
+                    marqueeBox.style.left = `${startX}px`;
+                    marqueeBox.style.top = `${startY}px`;
+                    container.appendChild(marqueeBox);
+                });
+
+                container.addEventListener('mousemove', (e) => {
+                    if (!isDragging || !marqueeBox) return;
+                    const rect = container.getBoundingClientRect();
+                    const currentX = e.clientX - rect.left;
+                    const currentY = e.clientY - rect.top;
+
+                    const width = Math.abs(currentX - startX);
+                    const height = Math.abs(currentY - startY);
+                    const left = Math.min(currentX, startX);
+                    const top = Math.min(currentY, startY);
+
+                    marqueeBox.style.width = `${width}px`;
+                    marqueeBox.style.height = `${height}px`;
+                    marqueeBox.style.left = `${left}px`;
+                    marqueeBox.style.top = `${top}px`;
+
+                    // Check intersection with table rows
+                    const boxRect = marqueeBox.getBoundingClientRect();
+                    document.querySelectorAll('.vocab-row').forEach(row => {
+                        const rowRect = row.getBoundingClientRect();
+                        const id = row.getAttribute('data-id');
+                        const isIntersecting = !(boxRect.right < rowRect.left || boxRect.left > rowRect.right || boxRect.bottom < rowRect.top || boxRect.top > rowRect.bottom);
+                        if (isIntersecting) {
+                            this.selectedIds.add(id);
+                        }
+                    });
+                    this.renderVocabTable();
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (isDragging && marqueeBox) {
+                        marqueeBox.remove();
+                        isDragging = false;
+                    }
+                });
+            }
+
+            toggleSelectRow(id, isChecked) {
+                if (isChecked) this.selectedIds.add(id);
+                else this.selectedIds.delete(id);
+                this.updateFloatingActionBar();
+            }
+
+            toggleSelectAll(isChecked) {
+                if (isChecked) {
+                    this.vocabs.forEach(v => this.selectedIds.add(v.id));
+                } else {
+                    this.selectedIds.clear();
+                }
+                this.renderVocabTable();
+            }
+
+            updateFloatingActionBar() {
+                const bar = document.getElementById('floating-action-bar');
+                const count = this.selectedIds.size;
+                document.getElementById('selected-count').textContent = count;
+                if (count > 0) bar.classList.remove('hidden');
+                else bar.classList.add('hidden');
+            }
+
+            clearSelection() {
+                this.selectedIds.clear();
+                this.renderVocabTable();
+            }
+
+            bulkDelete() {
+                if (!confirm(`Bạn có chắc muốn xóa ${this.selectedIds.size} từ đã chọn?`)) return;
+                this.vocabs = this.vocabs.filter(v => !this.selectedIds.has(v.id));
+                this.selectedIds.clear();
+                this.saveState();
+                this.renderVocabTable();
+            }
+
+            bulkChangeSet() {
+                const newSet = prompt('Nhập tên Bộ từ vựng mới:');
+                if (!newSet) return;
+                this.vocabs.forEach(v => {
+                    if (this.selectedIds.has(v.id)) v.set = newSet;
+                });
+                this.selectedIds.clear();
+                this.saveState();
+                this.renderVocabTable();
+            }
+
+            deleteWord(id) {
+                this.vocabs = this.vocabs.filter(v => v.id !== id);
+                this.saveState();
+                this.renderVocabTable();
+            }
+
+            handleImportFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = new Uint8Array(event.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(sheet);
+
+                        let addedCount = 0;
+                        json.forEach(row => {
+                            const word = row['Word'] || row['Từ tiếng Anh'] || row['word'];
+                            const meaning = row['Meaning'] || row['Nghĩa'] || row['meaning'];
+                            if (word && meaning) {
+                                this.vocabs.push({
+                                    id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                                    word: word.trim(),
+                                    ipa: row['IPA'] || row['ipa'] || '',
+                                    pos: row['POS'] || row['pos'] || 'noun',
+                                    meaning: meaning.trim(),
+                                    example: row['Example'] || row['Ví dụ'] || '',
+                                    set: row['Set'] || 'Imported File',
+                                    srsStage: 'new',
+                                    interval: 0,
+                                    easeFactor: 2.5,
+                                    rep: 0,
+                                    nextReview: Date.now()
+                                });
+                                addedCount++;
+                            }
+                        });
+
+                        this.saveState();
+                        alert(`Đã nhập thành công ${addedCount} từ vựng mới!`);
+                        this.renderVocabTable();
+                    } catch (err) {
+                        alert('Lỗi đọc file! Vui lòng chọn đúng định dạng Excel/CSV.');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            initFlashcards() {
+                const sets = Array.from(new Set(this.vocabs.map(v => v.set || 'Mặc định')));
+                const select = document.getElementById('flashcard-set-select');
+                select.innerHTML = `<option value="ALL">Tất cả Bộ từ (${this.vocabs.length})</option>` + sets.map(s => `<option value="${s}">${s}</option>`).join('');
+
+                this.flashcardIndex = 0;
+                this.isFlipped = false;
+                this.renderCurrentCard();
+            }
+
+            renderCurrentCard() {
+                const cardInner = document.getElementById('flashcard-inner');
+                cardInner.classList.remove('rotate-y-180');
+                this.isFlipped = false;
+
+                const selectedSet = document.getElementById('flashcard-set-select').value;
+                const pool = selectedSet === 'ALL' ? this.vocabs : this.vocabs.filter(v => v.set === selectedSet);
+
+                document.getElementById('card-total-count').textContent = pool.length;
+                if (pool.length === 0) {
+                    document.getElementById('card-word-text').textContent = "Trống";
+                    return;
+                }
+
+                document.getElementById('card-current-idx').textContent = this.flashcardIndex + 1;
+                const card = pool[this.flashcardIndex % pool.length];
+
+                document.getElementById('card-word-text').textContent = card.word;
+                document.getElementById('card-ipa-text').textContent = card.ipa || '';
+                document.getElementById('card-pos-badge').textContent = card.pos || 'noun';
+                document.getElementById('card-example-text').textContent = card.example ? `"${card.example}"` : '';
+                document.getElementById('card-meaning-text').textContent = card.meaning;
+                document.getElementById('card-example-vn-text').textContent = card.example ? `Ví dụ: ${card.example}` : '';
+            }
+
+            flipCard() {
+                const cardInner = document.getElementById('flashcard-inner');
+                this.isFlipped = !this.isFlipped;
+                if (this.isFlipped) cardInner.classList.add('rotate-y-180');
+                else cardInner.classList.remove('rotate-y-180');
+            }
+
+            rateSRS(quality) {
+                const selectedSet = document.getElementById('flashcard-set-select').value;
+                const pool = selectedSet === 'ALL' ? this.vocabs : this.vocabs.filter(v => v.set === selectedSet);
+                const card = pool[this.flashcardIndex % pool.length];
+
+                // SM-2 Spaced Repetition Algorithm Logic
+                if (quality === 'again') {
+                    card.srsStage = 'learning';
+                    card.interval = 1;
+                } else if (quality === 'hard') {
+                    card.srsStage = 'learning';
+                    card.interval = 1;
+                } else if (quality === 'good') {
+                    card.srsStage = 'review';
+                    card.interval = 3;
+                } else if (quality === 'easy') {
+                    card.srsStage = 'mastered';
+                    card.interval = 7;
+                }
+
+                this.addXP(15);
+                this.saveState();
+                this.flashcardIndex++;
+                this.renderCurrentCard();
+            }
+
+            switchQuizMode(mode) {
+                this.quizMode = mode;
+                document.querySelectorAll('.quiz-tab-btn').forEach(btn => btn.classList.remove('bg-duo-blue', 'text-white'));
+                document.getElementById(`quiz-mode-${mode}`).classList.add('bg-duo-blue', 'text-white');
+                this.renderQuizQuestion();
+            }
+
+            renderQuizQuestion() {
+                const view = document.getElementById('quiz-question-view');
+                if (this.vocabs.length < 4) {
+                    view.innerHTML = `<div class="text-center py-8 font-bold text-slate-400">Cần ít nhất 4 từ trong kho từ vựng để bắt đầu Quiz!</div>`;
+                    return;
+                }
+
+                const target = this.vocabs[Math.floor(Math.random() * this.vocabs.length)];
+
+                if (this.quizMode === 'mcq') {
+                    // 4 Multiple Choice Options
+                    const options = [target.meaning];
+                    while (options.length < 4) {
+                        const rand = this.vocabs[Math.floor(Math.random() * this.vocabs.length)].meaning;
+                        if (!options.includes(rand)) options.push(rand);
+                    }
+                    options.sort(() => Math.random() - 0.5);
+
+                    view.innerHTML = `
+                        <div class="text-center space-y-2">
+                            <span class="text-xs font-bold text-duo-blue uppercase">Chọn nghĩa chính xác của từ:</span>
+                            <h2 class="text-3xl font-black">${target.word}</h2>
+                            <p class="text-xs text-slate-400 font-mono">${target.ipa || ''}</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
+                            ${options.map(opt => `
+                                <button onclick="app.checkAnswer('${opt === target.meaning}', '${target.word}')" class="p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-blue font-bold text-left text-sm transition-all">
+                                    ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (this.quizMode === 'fill') {
+                    const maskedExample = target.example ? target.example.replace(new RegExp(target.word, 'gi'), '_____') : `Sự lựa chọn chính xác cho: "${target.meaning}" là _____`;
+                    view.innerHTML = `
+                        <div class="text-center space-y-4">
+                            <span class="text-xs font-bold text-duo-purple uppercase">Điền từ thích hợp vào khoảng trống:</span>
+                            <p class="text-lg font-bold italic text-slate-700 dark:text-slate-200">"${maskedExample}"</p>
+                            <p class="text-xs text-duo-green font-bold">Gợi ý nghĩa: ${target.meaning}</p>
+                            <input type="text" id="quiz-input-text" placeholder="Nhập từ tiếng Anh..." class="w-full max-w-sm px-4 py-3 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder font-bold text-center text-lg focus:ring-2 focus:ring-duo-blue outline-none">
+                            <button onclick="app.checkAnswer(document.getElementById('quiz-input-text').value.trim().toLowerCase() === '${target.word.toLowerCase()}', '${target.word}')" class="px-8 py-3 rounded-2xl bg-duo-blue text-white font-bold text-sm shadow-md">XÁC NHẬN</button>
+                        </div>
+                    `;
+                } else if (this.quizMode === 'listen') {
+                    view.innerHTML = `
+                        <div class="text-center space-y-4">
+                            <span class="text-xs font-bold text-duo-orange uppercase">Luyện Nghe & Gõ Lại Từ:</span>
+                            <div>
+                                <button onclick="app.speakText('${target.word}')" class="p-5 rounded-full bg-duo-orange/10 text-duo-orange hover:scale-110 transition-transform shadow-lg">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                                </button>
+                            </div>
+                            <input type="text" id="quiz-dictation-input" placeholder="Gõ từ bạn nghe được..." class="w-full max-w-sm px-4 py-3 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder font-bold text-center text-lg focus:ring-2 focus:ring-duo-orange outline-none">
+                            <div>
+                                <button onclick="app.checkAnswer(document.getElementById('quiz-dictation-input').value.trim().toLowerCase() === '${target.word.toLowerCase()}', '${target.word}')" class="px-8 py-3 rounded-2xl bg-duo-orange text-white font-bold text-sm shadow-md">KIỂM TRA</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            checkAnswer(isCorrect, targetWord) {
+                if (isCorrect) {
+                    this.playSFX('correct');
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                    this.addXP(20);
+                    alert(`🎉 CHÍNH XÁC! +20 XP`);
+                } else {
+                    this.playSFX('wrong');
+                    alert(`❌ SAI RỒI! Đáp án đúng là: "${targetWord}"`);
+                }
+                this.renderQuizQuestion();
+            }
+
+            startGame() {
+                document.getElementById('game-start-screen').classList.add('hidden');
+                this.gameScore = 0;
+                this.gameCombo = 1;
+                this.gameTimeLeft = 30;
+                this.gameSelectedCard = null;
+
+                document.getElementById('game-score-text').textContent = '0';
+                document.getElementById('game-combo-text').textContent = 'x1';
+
+                this.renderGameCards();
+
+                if (this.gameTimer) clearInterval(this.gameTimer);
+                this.gameTimer = setInterval(() => {
+                    this.gameTimeLeft--;
+                    document.getElementById('game-timer-num').textContent = `${this.gameTimeLeft}s`;
+                    document.getElementById('game-timer-bar').style.width = `${(this.gameTimeLeft / 30) * 100}%`;
+
+                    if (this.gameTimeLeft <= 0) {
+                        clearInterval(this.gameTimer);
+                        this.endGame();
+                    }
+                }, 1000);
+            }
+
+            renderGameCards() {
+                const pool = [...this.vocabs].sort(() => Math.random() - 0.5).slice(0, 5);
+                const engList = pool.map(v => ({ id: v.id, text: v.word, type: 'eng' })).sort(() => Math.random() - 0.5);
+                const vnList = pool.map(v => ({ id: v.id, text: v.meaning, type: 'vn' })).sort(() => Math.random() - 0.5);
+
+                const board = document.getElementById('game-board-container');
+                board.innerHTML = `
+                    <div class="space-y-3">
+                        ${engList.map(item => `
+                            <button onclick="app.handleGameCardClick(this, '${item.id}', 'eng')" class="game-card w-full p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-orange transition-all text-left font-bold text-sm">
+                                ${item.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="space-y-3">
+                        ${vnList.map(item => `
+                            <button onclick="app.handleGameCardClick(this, '${item.id}', 'vn')" class="game-card w-full p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-orange transition-all text-left font-bold text-sm">
+                                ${item.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            handleGameCardClick(btn, id, type) {
+                if (btn.classList.contains('bg-duo-green')) return;
+
+                if (!this.gameSelectedCard) {
+                    this.gameSelectedCard = { btn, id, type };
+                    btn.classList.add('border-duo-orange', 'bg-duo-orange/10');
+                } else {
+                    if (this.gameSelectedCard.type === type) {
+                        this.gameSelectedCard.btn.classList.remove('border-duo-orange', 'bg-duo-orange/10');
+                        this.gameSelectedCard = { btn, id, type };
+                        btn.classList.add('border-duo-orange', 'bg-duo-orange/10');
+                        return;
+                    }
+
+                    if (this.gameSelectedCard.id === id) {
+                        // MATCH SUCCESS
+                        this.playSFX('correct');
+                        btn.className = "w-full p-4 rounded-2xl bg-duo-green text-white font-bold text-sm transition-all";
+                        this.gameSelectedCard.btn.className = "w-full p-4 rounded-2xl bg-duo-green text-white font-bold text-sm transition-all";
+
+                        this.gameScore += 100 * this.gameCombo;
+                        this.gameCombo++;
+                        if (this.gameCombo > 2) this.playSFX('combo');
+
+                        document.getElementById('game-score-text').textContent = this.gameScore;
+                        document.getElementById('game-combo-text').textContent = `x${this.gameCombo}`;
+
+                        this.gameSelectedCard = null;
+
+                        // Check if all cards cleared
+                        if (document.querySelectorAll('.game-card:not(.bg-duo-green)').length === 0) {
+                            setTimeout(() => this.renderGameCards(), 400);
+                        }
+                    } else {
+                        // WRONG MATCH
+                        this.playSFX('wrong');
+                        this.gameCombo = 1;
+                        document.getElementById('game-combo-text').textContent = 'x1';
+                        this.gameSelectedCard.btn.classList.remove('border-duo-orange', 'bg-duo-orange/10');
+                        this.gameSelectedCard = null;
+                    }
+                }
+            }
+
+            endGame() {
+                confetti({ particleCount: 100, spread: 80 });
+                this.addXP(Math.floor(this.gameScore / 10));
+                alert(`🏁 Hết giờ!\nTổng điểm: ${this.gameScore}\nBạn nhận được: +${Math.floor(this.gameScore / 10)} XP`);
+                document.getElementById('game-start-screen').classList.remove('hidden');
+            }
+
+            renderLeaderboard() {
+                const mockLeaders = [
+                    { rank: 1, name: 'Minh Anh (IELTS 8.0)', avatar: '👑', xp: 4850, streak: 24 },
+                    { rank: 2, name: 'Hoàng Nam', avatar: '🦁', xp: 3920, streak: 18 },
+                    { rank: 3, name: 'Trần Bảo', avatar: '🚀', xp: 3100, streak: 14 },
+                    { rank: 4, name: this.user.name, avatar: this.user.avatar, xp: this.user.xp, streak: this.user.streak },
+                    { rank: 5, name: 'Thùy Trang', avatar: '🦊', xp: 1100, streak: 4 },
+                    { rank: 6, name: 'Đức Huy', avatar: '🤖', xp: 950, streak: 3 }
+                ].sort((a, b) => b.xp - a.xp);
+
+                // Top 3 Podium
+                const podium = document.getElementById('leaderboard-podium');
+                podium.innerHTML = `
+                    <div class="text-center space-y-1 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                        <div class="text-2xl sm:text-3xl">🥈</div>
+                        <div class="text-xs font-black truncate">${mockLeaders[1]?.name || 'Nam'}</div>
+                        <div class="text-[10px] text-amber-500 font-bold">${mockLeaders[1]?.xp || 0} XP</div>
+                    </div>
+                    <div class="text-center space-y-1 p-4 rounded-2xl bg-duo-yellow/20 border border-duo-yellow scale-105 shadow-lg">
+                        <div class="text-3xl sm:text-4xl">👑</div>
+                        <div class="text-xs font-black truncate">${mockLeaders[0]?.name || 'Minh Anh'}</div>
+                        <div class="text-xs text-duo-yellow font-black">${mockLeaders[0]?.xp || 0} XP</div>
+                    </div>
+                    <div class="text-center space-y-1 p-3 rounded-2xl bg-orange-500/10 border border-orange-500/30">
+                        <div class="text-2xl sm:text-3xl">🥉</div>
+                        <div class="text-xs font-black truncate">${mockLeaders[2]?.name || 'Bảo'}</div>
+                        <div class="text-[10px] text-orange-500 font-bold">${mockLeaders[2]?.xp || 0} XP</div>
+                    </div>
+                `;
+
+                // Rank list 4-10
+                const list = document.getElementById('leaderboard-list');
+                list.innerHTML = mockLeaders.slice(3).map((item, idx) => `
+                    <div class="flex items-center justify-between p-3 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs font-bold">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 text-slate-400 font-mono">#${idx + 4}</span>
+                            <span class="text-base">${item.avatar}</span>
+                            <span>${item.name}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-duo-orange">🔥 ${item.streak} ngày</span>
+                            <span class="text-amber-500">${item.xp} XP</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            initTTSVoices() {
+                if (!('speechSynthesis' in window)) return;
+                const voices = window.speechSynthesis.getVoices();
+                const select = document.getElementById('tts-voice-select');
+                if (!select) return;
+
+                const enVoices = voices.filter(v => v.lang.startsWith('en'));
+                select.innerHTML = enVoices.map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`).join('');
+            }
+
+            updateTTSSettings() {
+                const select = document.getElementById('tts-voice-select');
+                const rateSelect = document.getElementById('tts-rate-select');
+                const voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+                this.ttsVoice = voices[select.value] || null;
+                this.ttsRate = parseFloat(rateSelect.value) || 1.0;
+            }
+
+            speakText(text) {
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(text);
+                if (this.ttsVoice) utter.voice = this.ttsVoice;
+                utter.rate = this.ttsRate;
+                window.speechSynthesis.speak(utter);
+            }
+
+            speakWord() {
+                const text = document.getElementById('card-word-text').textContent;
+                this.speakText(text);
+            }
+
+            openAuthModal() {
+                this.switchAuthTab('login');
+                document.getElementById('auth-message').classList.add('hidden');
+                document.getElementById('auth-modal').classList.remove('hidden');
+                this.renderGoogleButton();
+            }
+
+            closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
+
+            switchAuthTab(type) {
+                this.authTab = type;
+                const form = document.getElementById('auth-form');
+                const registerHelp = document.getElementById('auth-register-help');
+                const subtitle = document.getElementById('auth-subtitle');
+                const isRegister = type === 'register';
+                form.classList.toggle('hidden', isRegister);
+                registerHelp.classList.toggle('hidden', !isRegister);
+                subtitle.textContent = isRegister
+                    ? 'Tạo tài khoản miễn phí bằng Google hoặc Facebook.'
+                    : 'Đăng nhập bằng Google, Facebook hoặc email và mật khẩu.';
+                document.getElementById('facebook-signin-label').textContent = isRegister
+                    ? 'Đăng ký bằng Facebook'
+                    : 'Tiếp tục với Facebook';
+
+                if (type === 'login') {
+                    document.getElementById('auth-tab-login').className = "text-lg font-black text-duo-blue border-b-2 border-duo-blue pb-1";
+                    document.getElementById('auth-tab-register').className = "text-lg font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 pb-1";
+                } else {
+                    document.getElementById('auth-tab-register').className = "text-lg font-black text-duo-blue border-b-2 border-duo-blue pb-1";
+                    document.getElementById('auth-tab-login').className = "text-lg font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 pb-1";
+                }
+                this.renderGoogleButton();
+            }
+
+            async handleAuthSubmit(e) {
+                e.preventDefault();
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: document.getElementById('auth-email-input').value.trim(),
+                            password: document.getElementById('auth-pass-input').value
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Email hoặc mật khẩu không chính xác.');
+                    }
+                    this.setAuthenticatedUser(data.user);
+                    this.closeAuthModal();
+                    this.showAuthMessage('Đăng nhập thành công.', true);
+                } catch (error) {
+                    this.showAuthMessage(error.message || 'Không thể đăng nhập. Vui lòng thử lại.', false);
+                }
+            }
+
+            openSettingsModal() {
+                document.getElementById('settings-modal').classList.remove('hidden');
+                document.getElementById('settings-name-input').value = this.user.name;
+
+                const grid = document.getElementById('avatar-picker-grid');
+                grid.innerHTML = AVATARS.map(av => `
+                    <button onclick="app.selectAvatar('${av}')" class="p-2 rounded-xl text-2xl hover:bg-black/5 dark:hover:bg-white/5 border ${this.user.avatar === av ? 'border-duo-blue bg-duo-blue/10' : 'border-transparent'}">
+                        ${av}
+                    </button>
+                `).join('');
+            }
+
+            closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
+
+            selectAvatar(av) {
+                this.user.avatar = av;
+                this.openSettingsModal();
+            }
+
+            saveSettings() {
+                this.user.name = document.getElementById('settings-name-input').value;
+                this.saveState();
+                this.updateHeaderUser();
+                this.renderAuthButton();
+                this.closeSettingsModal();
+            }
+
+            async logout() {
+                try {
+                    const response = await fetch('/api/logout', { method: 'POST' });
+                    if (!response.ok) throw new Error('Không thể đăng xuất. Vui lòng thử lại.');
+                    this.user.loggedIn = false;
+                    this.user.name = '';
+                    this.user.email = '';
+                    sessionStorage.setItem('skipFacebookAutoLogin', 'true');
+                    this.saveState();
+                    this.renderAuthButton();
+                    this.updateHeaderUser();
+                    this.closeSettingsModal();
+                } catch (error) {
+                    alert(error.message || 'Không thể đăng xuất. Vui lòng thử lại.');
+                }
+            }
+
+            openAddWordModal() { document.getElementById('add-modal').classList.remove('hidden'); }
+            closeAddModal() { document.getElementById('add-modal').classList.add('hidden'); }
+
+            saveNewWord(e) {
+                e.preventDefault();
+                const word = document.getElementById('add-word-input').value;
+                const ipa = document.getElementById('add-ipa-input').value;
+                const pos = document.getElementById('add-pos-input').value;
+                const meaning = document.getElementById('add-meaning-input').value;
+                const example = document.getElementById('add-example-input').value;
+                const set = document.getElementById('add-set-input').value || 'Mặc định';
+
+                this.vocabs.push({
+                    id: Date.now().toString(),
+                    word, ipa, pos, meaning, example, set,
+                    srsStage: 'new',
+                    interval: 0,
+                    easeFactor: 2.5,
+                    rep: 0,
+                    nextReview: Date.now()
+                });
+
+                this.saveState();
+                this.closeAddModal();
+                this.renderVocabTable();
+            }
+        }
+
+        let app;
+        window.onload = function() {
+            app = new VocabMindApp();
+            app.init();
+        };
+    </script>
+</body>
+</html>
