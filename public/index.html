@@ -72,16 +72,8 @@
         }
 
         .vocab-row .row-checkbox {
-            opacity: 0;
-            transition: opacity 150ms ease-in-out;
-        }
-        .vocab-row:hover .row-checkbox,
-        .vocab-row:focus-within .row-checkbox,
-        .vocab-row .row-checkbox:checked {
             opacity: 1;
-        }
-        @media (hover: none) {
-            .vocab-row .row-checkbox { opacity: 1; }
+            transition: opacity 150ms ease-in-out;
         }
 
         .game-card.is-selected {
@@ -818,11 +810,11 @@
                 <div class="lg:col-span-2 p-6 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm space-y-4">
                     <div class="flex items-center justify-between flex-wrap gap-2">
                         <div>
-                            <h3 class="font-bold text-lg">Dự Báo Ôn Tập 7 Ngày Tới</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Lịch trình tự động tính toán theo thuật toán Ebbinghaus</p>
+                            <h3 class="font-bold text-lg">Lịch Ôn Spaced Repetition 7 Ngày</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Số từ đến hạn mỗi ngày, dựa trên lịch ôn của bạn</p>
                         </div>
                         <div class="px-3 py-1 rounded-xl bg-duo-blue/10 text-duo-blue text-xs font-bold">
-                            Chế độ SM-2 Algorithm
+                            Dự báo SRS
                         </div>
                     </div>
                     <div class="h-64 relative">
@@ -924,12 +916,15 @@
             </div>
 
             <!-- Floating Action Bar for Mass Selected Items -->
-            <div id="floating-action-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 hidden px-6 py-3 rounded-2xl glass-panel border border-duo-blue/30 shadow-2xl flex items-center gap-4 animate-pop">
+            <div id="floating-action-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-1.5rem)] flex-wrap justify-center px-4 py-3 rounded-2xl glass-panel border border-duo-blue/30 shadow-2xl items-center gap-3 animate-pop" style="display: none;">
                 <div class="text-xs font-bold text-duo-blue">
                     Đã chọn <span id="selected-count" class="text-sm font-black">0</span> từ
                 </div>
                 <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
                 <div class="flex items-center gap-2">
+                    <button id="edit-selected-vocab-button" onclick="app.editSelectedWord()" disabled class="px-3 py-1.5 rounded-xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-duo-blue/10 disabled:hover:text-duo-blue" title="Chọn đúng một từ để chỉnh sửa">
+                        Sửa Từ
+                    </button>
                     <button onclick="app.bulkDelete()" class="px-3 py-1.5 rounded-xl bg-duo-red/10 text-duo-red hover:bg-duo-red hover:text-white font-bold text-xs transition-all flex items-center gap-1">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         <span>Xóa Đã Chọn</span>
@@ -938,7 +933,7 @@
                         <span>Đổi Bộ Từ</span>
                     </button>
                     <button onclick="app.clearSelection()" class="px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
-                        Hủy
+                        Bỏ Chọn
                     </button>
                 </div>
             </div>
@@ -988,7 +983,7 @@
                             <p id="card-example-vn-text" class="text-xs text-slate-500 dark:text-slate-400 max-w-md">"Sự kiên trì trong công việc giúp đạt thành công."</p>
                         </div>
                         
-                        <!-- SRS Rating Buttons (SM-2 Algorithm) -->
+                        <!-- Spaced-repetition rating buttons -->
                         <div class="w-full grid grid-cols-4 gap-2 pt-4" onclick="event.stopPropagation()">
                             <button onclick="app.rateSRS('again')" class="py-2 px-1 rounded-xl bg-duo-red/10 text-duo-red hover:bg-duo-red hover:text-white text-xs font-bold transition-all">
                                 🔴 Quên<br><span class="text-[10px] opacity-75">&lt; 1 phút</span>
@@ -1210,8 +1205,8 @@
     <!-- ==================== ADD / EDIT WORD MODAL ==================== -->
     <div id="add-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="w-full max-w-md rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-2xl p-6 space-y-4 animate-pop">
-            <h3 class="text-xl font-black">Thêm Từ Mới Vào Kho</h3>
-            <form onsubmit="app.saveNewWord(event)" class="space-y-3 text-xs font-semibold">
+            <h3 id="word-modal-title" class="text-xl font-black">Thêm Từ Mới Vào Kho</h3>
+            <form id="word-edit-form" onsubmit="app.saveNewWord(event)" class="space-y-3 text-xs font-semibold">
                 <div>
                     <label class="text-slate-500">Từ Tiếng Anh</label>
                     <input type="text" id="add-word-input" required placeholder="e.g. Resilience" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
@@ -1263,7 +1258,7 @@
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" onclick="app.closeAddModal()" class="px-4 py-2 rounded-xl text-slate-400">Hủy</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-duo-green text-white font-bold shadow-md shadow-duo-green/20">Lưu Từ</button>
+                    <button id="word-modal-submit" type="submit" class="px-5 py-2 rounded-xl bg-duo-green text-white font-bold shadow-md shadow-duo-green/20">Lưu Từ</button>
                 </div>
             </form>
         </div>
@@ -1374,7 +1369,14 @@
         const normalizeIpaTranscription = value => {
             const transcription = String(value || '').trim();
             if (!isIpaTranscription(transcription)) return transcription;
-            return `/${transcription.slice(1, -1).replace(/\s+/g, '')}/`;
+            const segments = transcription.slice(1, -1).trim().split(/\s+/);
+            const compacted = segments.reduce((result, segment, index) => {
+                if (index === 0) return segment;
+                const previous = segments[index - 1];
+                const joinsToNeighbor = previous === '.' || segment === '.' || previous.length === 1 || segment.length === 1;
+                return `${result}${joinsToNeighbor ? '' : ' '}${segment}`;
+            }, '');
+            return `/${compacted}/`;
         };
 
         const normalizeVocabularyFields = vocab => {
@@ -1382,11 +1384,14 @@
             const meaning = String(normalized.meaning || '').trim();
             const ipa = normalizeIpaTranscription(normalized.ipa);
             if (isIpaTranscription(meaning) && ipa && !isIpaTranscription(ipa)) {
-                normalized.meaning = normalizeIpaTranscription(ipa);
+                normalized.meaning = ipa;
                 normalized.ipa = normalizeIpaTranscription(meaning);
             } else {
                 normalized.meaning = meaning;
                 normalized.ipa = ipa;
+            }
+            if (normalizeTopicText(normalized.word).trim() === 'tra c light') {
+                normalized.word = 'Traffic light';
             }
             normalized.topic = VOCAB_TOPIC_LABELS.includes(String(normalized.topic || '').trim())
                 ? String(normalized.topic).trim()
@@ -1515,6 +1520,7 @@
                     ...savedSets
                 ].map(set => set.trim()).filter(Boolean)));
                 this.selectedIds = new Set();
+                this.editingVocabId = null;
                 this.currentTab = 'dashboard';
                 this.quizMode = 'mcq';
                 this.quizFeedbackTimer = null;
@@ -1865,22 +1871,42 @@
                     }
                 });
 
-                // Render Chart 2: 7-Day Review Schedule Bar Chart
+                // Render Chart 2: seven-day spaced-repetition forecast
                 const ctxRet = document.getElementById('srsRetentionChart').getContext('2d');
                 if (this.retentionChart) this.retentionChart.destroy();
 
-                const days = ['Hôm nay', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-                const reviewData = [review + learning, 4, 8, 3, 12, 5, 9];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const forecastDays = Array.from({ length: 7 }, (_, index) => {
+                    const start = new Date(today);
+                    start.setDate(today.getDate() + index);
+                    const end = new Date(start);
+                    end.setDate(start.getDate() + 1);
+                    return { start, end };
+                });
+                const forecastLabels = forecastDays.map(({ start }, index) => index === 0
+                    ? 'Hôm nay'
+                    : start.toLocaleDateString('vi-VN', { weekday: 'short', day: 'numeric', month: 'numeric' }));
+                const reviewData = forecastDays.map(({ start, end }, index) => this.vocabs.filter(vocab => {
+                    if (vocab.srsStage === 'new') return false;
+                    const dueAt = Number(vocab.nextReview);
+                    if (!Number.isFinite(dueAt)) return false;
+                    return index === 0 ? dueAt < end.getTime() : dueAt >= start.getTime() && dueAt < end.getTime();
+                }).length);
 
                 this.retentionChart = new Chart(ctxRet, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
-                        labels: days,
+                        labels: forecastLabels,
                         datasets: [{
-                            label: 'Số từ cần ôn tập',
+                            label: 'Từ đến hạn ôn',
                             data: reviewData,
-                            backgroundColor: '#1CB0F6',
-                            borderRadius: 8
+                            borderColor: '#1CB0F6',
+                            backgroundColor: 'rgba(28, 176, 246, 0.14)',
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         }]
                     },
                     options: {
@@ -1889,7 +1915,11 @@
                         plugins: { legend: { display: false } },
                         scales: {
                             x: { grid: { display: false } },
-                            y: { grid: { color: 'rgba(150, 150, 150, 0.1)' } }
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0 },
+                                grid: { color: 'rgba(150, 150, 150, 0.1)' }
+                            }
                         }
                     }
                 });
@@ -1985,6 +2015,10 @@
                             </td>
                             <td class="p-3.5">${srsBadge}</td>
                             <td class="p-3.5 text-center space-x-1">
+                                <button type="button" data-vocab-action="edit" class="inline-flex items-center gap-1 px-2 py-1 text-duo-blue hover:bg-duo-blue/10 rounded-lg font-bold" aria-label="Chỉnh sửa ${escapeHTML(v.word)}" title="Chỉnh sửa từ vựng">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 2.651 2.651M8 16l3.5-.7L20 6.8a1.875 1.875 0 0 0-2.65-2.65l-8.5 8.5L8 16Zm-3 4h14"></path></svg>
+                                    <span>Sửa</span>
+                                </button>
                                 <button onclick="app.deleteWord('${v.id}')" class="p-1 text-duo-red hover:bg-duo-red/10 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                             </td>
                         </tr>
@@ -2014,6 +2048,7 @@
                         const vocab = this.vocabs.find(item => item.id === row.dataset.id);
                         if (vocab) this.speakText(vocab.word);
                     }
+                    if (button.dataset.vocabAction === 'edit') this.openEditWordModal(row.dataset.id);
                     if (button.dataset.vocabAction === 'delete') this.deleteWord(row.dataset.id);
                 });
             }
@@ -2165,11 +2200,21 @@
                 const bar = document.getElementById('floating-action-bar');
                 const count = this.selectedIds.size;
                 document.getElementById('selected-count').textContent = count;
+                const editButton = document.getElementById('edit-selected-vocab-button');
+                editButton.disabled = count !== 1;
+                editButton.title = count === 1
+                    ? 'Chỉnh sửa từ đang chọn'
+                    : 'Chọn đúng một từ để chỉnh sửa';
                 const selectAllCheckbox = document.getElementById('select-all-checkbox');
                 selectAllCheckbox.checked = this.vocabs.length > 0 && this.vocabs.every(vocab => this.selectedIds.has(vocab.id));
                 selectAllCheckbox.indeterminate = !selectAllCheckbox.checked && count > 0;
-                if (count > 0) bar.classList.remove('hidden');
-                else bar.classList.add('hidden');
+                bar.style.display = count > 0 ? 'flex' : 'none';
+            }
+
+            editSelectedWord() {
+                if (this.selectedIds.size !== 1) return;
+                const [id] = this.selectedIds;
+                this.openEditWordModal(id);
             }
 
             clearSelection() {
@@ -2470,8 +2515,14 @@
                 } else if (quality === 'easy') {
                     card.srsStage = 'mastered';
                     card.interval = 7;
+                } else {
+                    return;
                 }
 
+                const intervalMilliseconds = quality === 'again'
+                    ? 30 * 1000
+                    : card.interval * 24 * 60 * 60 * 1000;
+                card.nextReview = Date.now() + intervalMilliseconds;
                 this.addXP(15);
                 this.saveState();
                 this.flashcardIndex++;
@@ -2918,8 +2969,50 @@
                 }
             }
 
-            openAddWordModal() { document.getElementById('add-modal').classList.remove('hidden'); }
-            closeAddModal() { document.getElementById('add-modal').classList.add('hidden'); }
+            openAddWordModal() {
+                this.editingVocabId = null;
+                document.getElementById('word-edit-form').reset();
+                document.getElementById('word-modal-title').textContent = 'Thêm Từ Mới Vào Kho';
+                document.getElementById('word-modal-submit').textContent = 'Lưu Từ';
+                document.getElementById('add-topic-input').value = 'AUTO';
+                document.getElementById('add-set-input').value = '';
+                document.getElementById('add-pos-input').querySelectorAll('[data-custom-pos]').forEach(option => option.remove());
+                document.getElementById('add-modal').classList.remove('hidden');
+                document.getElementById('add-word-input').focus();
+            }
+
+            openEditWordModal(id) {
+                const vocab = this.vocabs.find(item => item.id === id);
+                if (!vocab) return;
+
+                this.editingVocabId = id;
+                document.getElementById('add-word-input').value = vocab.word || '';
+                document.getElementById('add-ipa-input').value = vocab.ipa || '';
+                document.getElementById('add-meaning-input').value = vocab.meaning || '';
+                document.getElementById('add-example-input').value = vocab.example || '';
+                document.getElementById('add-set-input').value = vocab.set || 'Mặc định';
+
+                const posSelect = document.getElementById('add-pos-input');
+                posSelect.querySelectorAll('[data-custom-pos]').forEach(option => option.remove());
+                const pos = vocab.pos || 'noun';
+                if (![...posSelect.options].some(option => option.value === pos)) {
+                    posSelect.add(new Option(pos, pos));
+                    posSelect.lastElementChild.dataset.customPos = 'true';
+                }
+                posSelect.value = pos;
+
+                const topicSelect = document.getElementById('add-topic-input');
+                topicSelect.value = VOCAB_TOPIC_LABELS.includes(vocab.topic) ? vocab.topic : 'AUTO';
+                document.getElementById('word-modal-title').textContent = 'Chỉnh Sửa Từ Vựng';
+                document.getElementById('word-modal-submit').textContent = 'Lưu Thay Đổi';
+                document.getElementById('add-modal').classList.remove('hidden');
+                document.getElementById('add-word-input').focus();
+            }
+
+            closeAddModal() {
+                document.getElementById('add-modal').classList.add('hidden');
+                this.editingVocabId = null;
+            }
 
             getVocabularySets() {
                 return Array.from(new Set([
@@ -2976,27 +3069,43 @@
 
             saveNewWord(e) {
                 e.preventDefault();
-                const word = document.getElementById('add-word-input').value;
-                const ipa = document.getElementById('add-ipa-input').value;
+                const word = document.getElementById('add-word-input').value.trim();
+                const ipa = document.getElementById('add-ipa-input').value.trim();
                 const pos = document.getElementById('add-pos-input').value;
-                const meaning = document.getElementById('add-meaning-input').value;
-                const example = document.getElementById('add-example-input').value;
+                const meaning = document.getElementById('add-meaning-input').value.trim();
+                const example = document.getElementById('add-example-input').value.trim();
                 const set = document.getElementById('add-set-input').value.trim() || 'Mặc định';
                 const selectedTopic = document.getElementById('add-topic-input').value;
                 if (!this.vocabSets.some(existing => existing.toLocaleLowerCase() === set.toLocaleLowerCase())) {
                     this.vocabSets.push(set);
                 }
 
-                this.vocabs.push(normalizeVocabularyFields({
-                    id: Date.now().toString(),
+                const editableFields = {
                     word, ipa, pos, meaning, example, set,
-                    topic: selectedTopic === 'AUTO' ? '' : selectedTopic,
-                    srsStage: 'new',
-                    interval: 0,
-                    easeFactor: 2.5,
-                    rep: 0,
-                    nextReview: Date.now()
-                }));
+                    topic: selectedTopic === 'AUTO' ? '' : selectedTopic
+                };
+                if (this.editingVocabId) {
+                    const index = this.vocabs.findIndex(vocab => vocab.id === this.editingVocabId);
+                    if (index === -1) {
+                        this.closeAddModal();
+                        alert('Không tìm thấy từ vựng cần chỉnh sửa. Hãy tải lại kho từ và thử lại.');
+                        return;
+                    }
+                    this.vocabs[index] = normalizeVocabularyFields({
+                        ...this.vocabs[index],
+                        ...editableFields
+                    });
+                } else {
+                    this.vocabs.push(normalizeVocabularyFields({
+                        id: Date.now().toString(),
+                        ...editableFields,
+                        srsStage: 'new',
+                        interval: 0,
+                        easeFactor: 2.5,
+                        rep: 0,
+                        nextReview: Date.now()
+                    }));
+                }
 
                 this.saveState();
                 this.closeAddModal();
