@@ -937,11 +937,32 @@
                 </div>
             </div>
 
+            <div id="floating-action-bar" class="w-full flex-wrap justify-between gap-3 px-4 py-3 rounded-2xl glass-panel border border-duo-blue/30 shadow-lg items-center" style="display: none;">
+                <div class="text-xs font-bold text-duo-blue">
+                    Đã chọn <span id="selected-count" class="text-sm font-black">0</span> từ
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="edit-selected-vocab-button" onclick="app.editSelectedWord()" disabled class="px-3 py-1.5 rounded-xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-duo-blue/10 disabled:hover:text-duo-blue" title="Chọn đúng một từ để chỉnh sửa">
+                        Sửa Từ
+                    </button>
+                    <button onclick="app.bulkDelete()" class="px-3 py-1.5 rounded-xl bg-duo-red/10 text-duo-red hover:bg-duo-red hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 0 1-1 1v3M4 7h16"></path></svg>
+                        <span>Xóa Đã Chọn</span>
+                    </button>
+                    <button onclick="app.bulkChangeSet()" class="px-3 py-1.5 rounded-xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs transition-all">
+                        Đổi Bộ Từ
+                    </button>
+                    <button onclick="app.clearSelection()" class="px-2.5 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs">
+                        Bỏ Chọn
+                    </button>
+                </div>
+            </div>
+
             <!-- Vocabulary Table Container with Drag Marquee Selection -->
             <div id="marquee-container" class="relative rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm overflow-hidden select-none">
                 <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
                     <p id="vocab-topic-summary" class="text-xs font-semibold text-slate-500"></p>
-                    <p class="text-[11px] text-slate-400">Rê chuột vào hàng để hiện ô chọn; trên điện thoại, ô chọn luôn hiển thị.</p>
+                    <p class="text-[11px] text-slate-400">Chọn ô vuông ở đầu hàng để hiện thanh thao tác và sửa, xóa hoặc chuyển bộ từ.</p>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
@@ -968,14 +989,13 @@
                 </div>
             </div>
 
-            <!-- Floating Action Bar for Mass Selected Items -->
-            <div id="floating-action-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-1.5rem)] flex-wrap justify-center px-4 py-3 rounded-2xl glass-panel border border-duo-blue/30 shadow-2xl items-center gap-3 animate-pop" style="display: none;">
+            <template>
                 <div class="text-xs font-bold text-duo-blue">
-                    Đã chọn <span id="selected-count" class="text-sm font-black">0</span> từ
+                    Đã chọn <span class="text-sm font-black">0</span> từ
                 </div>
                 <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
                 <div class="flex items-center gap-2">
-                    <button id="edit-selected-vocab-button" onclick="app.editSelectedWord()" disabled class="px-3 py-1.5 rounded-xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-duo-blue/10 disabled:hover:text-duo-blue" title="Chọn đúng một từ để chỉnh sửa">
+                    <button onclick="app.editSelectedWord()" disabled class="px-3 py-1.5 rounded-xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-duo-blue/10 disabled:hover:text-duo-blue" title="Chọn đúng một từ để chỉnh sửa">
                         Sửa Từ
                     </button>
                     <button onclick="app.bulkDelete()" class="px-3 py-1.5 rounded-xl bg-duo-red/10 text-duo-red hover:bg-duo-red hover:text-white font-bold text-xs transition-all flex items-center gap-1">
@@ -989,7 +1009,7 @@
                         Bỏ Chọn
                     </button>
                 </div>
-            </div>
+            </template>
         </section>
 
         <!-- ==================== TAB 3: 3D FLASHCARD DECK ==================== -->
