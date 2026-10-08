@@ -17,6 +17,8 @@ The app uses in-memory users and OTPs, so account data is not persistent and is 
 
 For local development, set a private `JWT_SECRET` before running `npm start`.
 
+The server sets Helmet security headers, limits JSON request bodies to 32 KB, and rate-limits login, OAuth, and password-reset OTP endpoints. OTP codes expire after five minutes, can be resent after 60 seconds, and allow at most five guesses. Rate-limit counters and OTP records are held in memory; they reset on restart and are not shared across multiple service instances, so configure a shared store before scaling horizontally. The content security policy allows the external learning, import, and sign-in providers used by the page; its inline script/style allowances are retained because the current frontend depends on inline handlers and Tailwind's browser runtime.
+
 The homepage uses the VocabMind learning dashboard in `public/index.html`. Google and Facebook sign-in also create an account on first successful sign-in. Set `GOOGLE_CLIENT_ID` and `FACEBOOK_APP_ID` in Render to enable the corresponding buttons. Vocabulary and learning progress are stored in the user's browser; they are not yet synced between devices or saved in the server database.
 
 Create and manage vocabulary decks from the **Kho Từ Vựng** tab. Deck names and vocabulary are saved in the current browser, and newly created decks are available in the flashcard selector. Select a deck to select all its words or delete the deck; deleting a deck requires confirmation and also permanently deletes its words from this browser.
@@ -28,5 +30,7 @@ The built-in sample words use British English IPA (Anh-Anh). When existing brows
 On startup, the app repairs six identifiable truncated rows from the imported **IELTS 7.0** deck using the supplied source pages. The repair only matches the known broken word/meaning fragments in that deck and preserves each record's ID, IPA, review progress, and other fields.
 
 The dashboard's seven-day spaced-repetition line chart is calculated from each reviewed word's saved `nextReview` date. Rating a flashcard updates its next review time: again in under a minute, hard in one day, good in three days, and easy in seven days. An identifiable imported typo, `Tra c light`, is normalized to `Traffic light` without changing its other fields. Edit a word from its row in **Kho Từ Vựng**, or select exactly one checkbox and use **Sửa Từ** in the selection toolbar; changes preserve the word's ID and spaced-repetition progress. The selection toolbar also supports bulk deletion and clearing the selection.
+
+The **Minigame** tab includes the original timed word-meaning matching game plus **Xáo chữ** (unscramble an English word from its Vietnamese meaning) and **Đúng hay sai** (judge a word-meaning pair). Each game runs for 30 seconds and uses the existing score, combo, and XP system.
 
 The cookie notice explains that the `session_token` cookie maintains sign-in sessions, while vocabulary and theme preferences use browser storage. The notice stores the user's choice (`all` or `necessary`) in local storage and can be reopened from **Cài đặt cookie**. The app currently does not use analytics or advertising cookies.

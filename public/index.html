@@ -91,6 +91,16 @@
             border-color: #58CC02 !important;
             color: #FFFFFF !important;
         }
+        .game-mode-button[aria-pressed="true"] {
+            border-color: #1CB0F6;
+            background: rgba(28, 176, 246, 0.12);
+            color: #0369a1;
+            box-shadow: 0 8px 20px rgba(28, 176, 246, 0.12);
+        }
+        .dark .game-mode-button[aria-pressed="true"] {
+            background: rgba(28, 176, 246, 0.18);
+            color: #bae6fd;
+        }
         .quiz-option.is-correct {
             background-color: #58CC02 !important;
             border-color: #58CC02 !important;
@@ -1116,13 +1126,31 @@
         </section>
 
         <!-- ==================== TAB 5: MINI-GAME (SPEED WORD MATCH) ==================== -->
-        <section id="tab-game" class="tab-content space-y-6 hidden max-w-4xl mx-auto">
+        <section id="tab-game" class="tab-content space-y-6 hidden max-w-5xl mx-auto">
             <div class="p-6 sm:p-8 rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm text-center space-y-6">
+                <div id="game-mode-selector" class="grid grid-cols-1 gap-3 border-b border-notion-border pb-5 dark:border-notion-darkBorder sm:grid-cols-3" role="group" aria-label="Chọn minigame">
+                    <button type="button" data-game-mode="match" aria-pressed="true" class="game-mode-button rounded-2xl border border-transparent bg-notion-bg p-4 text-left transition-all dark:bg-notion-darkBg">
+                        <span class="block text-2xl" aria-hidden="true">🔗</span>
+                        <span class="mt-2 block text-sm font-black">Ghép cặp</span>
+                        <span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">Nối từ tiếng Anh với nghĩa tiếng Việt.</span>
+                    </button>
+                    <button type="button" data-game-mode="scramble" aria-pressed="false" class="game-mode-button rounded-2xl border border-transparent bg-notion-bg p-4 text-left transition-all dark:bg-notion-darkBg">
+                        <span class="block text-2xl" aria-hidden="true">🔤</span>
+                        <span class="mt-2 block text-sm font-black">Xáo chữ</span>
+                        <span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">Giải mã từ tiếng Anh từ gợi ý tiếng Việt.</span>
+                    </button>
+                    <button type="button" data-game-mode="truth" aria-pressed="false" class="game-mode-button rounded-2xl border border-transparent bg-notion-bg p-4 text-left transition-all dark:bg-notion-darkBg">
+                        <span class="block text-2xl" aria-hidden="true">⚡</span>
+                        <span class="mt-2 block text-sm font-black">Đúng hay sai</span>
+                        <span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">Kiểm tra nhanh cặp từ và nghĩa.</span>
+                    </button>
+                </div>
+
                 <!-- Game Header -->
                 <div class="flex items-center justify-between border-b border-notion-border dark:border-notion-darkBorder pb-4">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black text-duo-orange flex items-center gap-2">⚡ Ghép từ tính giờ</h2>
-                        <p class="text-xs text-slate-500">Nối cặp từ Anh - Việt chính xác trước khi hết thời gian!</p>
+                        <h2 id="game-title" class="text-2xl font-black text-duo-orange flex items-center gap-2">⚡ Ghép từ tính giờ</h2>
+                        <p id="game-description" class="text-xs text-slate-500">Nối cặp từ Anh - Việt chính xác trước khi hết thời gian!</p>
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="text-center">
@@ -1156,9 +1184,9 @@
                 <div id="game-start-screen" class="space-y-4 py-8">
                     <div class="text-5xl animate-bounce">⏱️</div>
                     <h3 class="text-xl font-black">Sẵn sàng thử thách phản xạ?</h3>
-                    <p class="text-xs text-slate-500 max-w-md mx-auto">Ghép từ càng nhanh, combo nhân điểm càng lớn (+50 XP cho vị trí dẫn đầu!)</p>
-                    <button onclick="app.startGame()" class="px-8 py-3.5 rounded-2xl bg-duo-orange hover:brightness-110 text-white font-black text-base shadow-xl shadow-duo-orange/30 hover:scale-105 active:scale-95 transition-all">
-                        BẮT ĐẦU CHƠI (30s)
+                    <p class="text-xs text-slate-500 max-w-md mx-auto">Trả lời đúng để ghi điểm, giữ combo để nhân điểm và nhận XP sau mỗi lượt chơi.</p>
+                    <button id="game-start-button" onclick="app.startGame()" class="px-8 py-3.5 rounded-2xl bg-duo-orange hover:brightness-110 text-white font-black text-base shadow-xl shadow-duo-orange/30 hover:scale-105 active:scale-95 transition-all">
+                        BẮT ĐẦU GHÉP CẶP (30s)
                     </button>
                 </div>
             </div>
@@ -1646,10 +1674,16 @@
 
                 // Game state
                 this.gameTimer = null;
+                this.gameTransitionTimer = null;
                 this.gameTimeLeft = 30;
                 this.gameScore = 0;
                 this.gameCombo = 1;
+                this.gameRound = 0;
                 this.gameSelectedCard = null;
+                this.gameMode = 'match';
+                this.gameIsRunning = false;
+                this.gamePool = [];
+                this.gameCurrentQuestion = null;
 
                 // Charts instances
                 this.distChart = null;
@@ -2207,11 +2241,27 @@
             }
 
             setupGameActions() {
-                const board = document.getElementById('game-board-container');
-                board.addEventListener('click', event => {
+                const game = document.getElementById('tab-game');
+                game.addEventListener('click', event => {
+                    const modeButton = event.target.closest('[data-game-mode]');
+                    if (modeButton) {
+                        this.selectGameMode(modeButton.dataset.gameMode);
+                        return;
+                    }
                     const button = event.target.closest('.game-card[data-id]');
-                    if (!button) return;
-                    this.handleGameCardClick(button, button.dataset.id, button.dataset.type);
+                    if (button) {
+                        this.handleGameCardClick(button, button.dataset.id, button.dataset.type);
+                        return;
+                    }
+                    const answerButton = event.target.closest('[data-game-answer]');
+                    if (answerButton) this.answerGameQuestion(answerButton.dataset.gameAnswer === 'true');
+                });
+                game.addEventListener('submit', event => {
+                    const form = event.target.closest('[data-game-action="scramble-answer"]');
+                    if (!form) return;
+                    event.preventDefault();
+                    const input = form.querySelector('input[name="game-answer"]');
+                    this.answerScramble(input.value);
                 });
             }
 
@@ -2802,22 +2852,78 @@
                 this.renderQuizQuestion();
             }
 
+            selectGameMode(mode) {
+                if (this.gameIsRunning || !['match', 'scramble', 'truth'].includes(mode)) return;
+                this.gameMode = mode;
+                this.gameCurrentQuestion = null;
+                this.gamePool = [];
+                document.querySelectorAll('[data-game-mode]').forEach(button => {
+                    button.setAttribute('aria-pressed', String(button.dataset.gameMode === mode));
+                });
+                const copy = {
+                    match: ['⚡ Ghép từ tính giờ', 'Nối cặp từ Anh - Việt chính xác trước khi hết thời gian!', 'BẮT ĐẦU GHÉP CẶP (30s)'],
+                    scramble: ['🔤 Xáo chữ tính giờ', 'Dựa vào nghĩa tiếng Việt để giải mã từ tiếng Anh.', 'BẮT ĐẦU XÁO CHỮ (30s)'],
+                    truth: ['⚡ Đúng hay sai', 'Xác định nhanh nghĩa có khớp với từ tiếng Anh không.', 'BẮT ĐẦU THỬ THÁCH (30s)']
+                }[mode];
+                document.getElementById('game-title').textContent = copy[0];
+                document.getElementById('game-description').textContent = copy[1];
+                document.getElementById('game-start-button').textContent = copy[2];
+                document.getElementById('game-board-container').replaceChildren();
+            }
+
+            shuffleItems(items) {
+                const shuffled = [...items];
+                for (let index = shuffled.length - 1; index > 0; index--) {
+                    const swapIndex = Math.floor(Math.random() * (index + 1));
+                    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+                }
+                return shuffled;
+            }
+
             startGame() {
+                if (this.gameTimer) clearInterval(this.gameTimer);
+                if (this.gameTransitionTimer) clearTimeout(this.gameTransitionTimer);
+                this.gameTimer = null;
+                this.gameTransitionTimer = null;
                 this.gameScore = 0;
                 this.gameCombo = 1;
                 this.gameTimeLeft = 30;
                 this.gameSelectedCard = null;
+                this.gameRound = 0;
+                this.gameCurrentQuestion = null;
+                const vocabulary = this.getQuizVocabulary();
+                this.gamePool = this.shuffleItems(this.gameMode === 'scramble'
+                    ? vocabulary.filter(item => /[a-z]/i.test(item.word))
+                    : vocabulary);
+                if (this.gameMode === 'truth') {
+                    const seenMeanings = new Set();
+                    this.gamePool = this.gamePool.filter(item => {
+                        const meaning = item.meaning.toLocaleLowerCase();
+                        if (seenMeanings.has(meaning)) return false;
+                        seenMeanings.add(meaning);
+                        return true;
+                    });
+                }
 
                 document.getElementById('game-score-text').textContent = '0';
                 document.getElementById('game-combo-text').textContent = 'x1';
+                document.getElementById('game-timer-num').textContent = '30s';
+                document.getElementById('game-timer-bar').style.width = '100%';
 
-                if (!this.renderGameCards()) {
-                    alert('Chưa có từ nào với nghĩa tiếng Việt hợp lệ để ghép. Hãy kiểm tra cột Nghĩa trong Kho Từ Vựng.');
+                if (this.gamePool.length === 0 || (this.gameMode === 'truth' && this.gamePool.length < 2)) {
+                    const message = this.gameMode === 'truth'
+                        ? 'Cần ít nhất hai cặp từ - nghĩa khác nhau để chơi Đúng hay sai.'
+                        : this.gameMode === 'scramble'
+                            ? 'Chưa có từ tiếng Anh hợp lệ để chơi Xáo chữ.'
+                            : 'Chưa có từ nào với nghĩa tiếng Việt hợp lệ để ghép.';
+                    alert(`${message} Hãy kiểm tra dữ liệu trong Kho Từ Vựng.`);
                     return;
                 }
+                if (!this.renderGameRound()) return;
+                this.gameIsRunning = true;
+                document.getElementById('game-mode-selector').classList.add('hidden');
                 document.getElementById('game-start-screen').classList.add('hidden');
 
-                if (this.gameTimer) clearInterval(this.gameTimer);
                 this.gameTimer = setInterval(() => {
                     this.gameTimeLeft--;
                     document.getElementById('game-timer-num').textContent = `${this.gameTimeLeft}s`;
@@ -2830,16 +2936,23 @@
                 }, 1000);
             }
 
+            renderGameRound() {
+                if (this.gameMode === 'match') return this.renderGameCards();
+                if (this.gameMode === 'scramble') return this.renderScrambleRound();
+                if (this.gameMode === 'truth') return this.renderTruthRound();
+                return false;
+            }
+
             renderGameCards() {
-                const pool = [...this.getQuizVocabulary()].sort(() => Math.random() - 0.5).slice(0, 5);
+                const pool = this.shuffleItems(this.gamePool).slice(0, 5);
                 const board = document.getElementById('game-board-container');
                 if (pool.length === 0) {
                     board.innerHTML = `<p class="col-span-2 self-center text-center text-sm font-bold text-slate-400">Chưa có cặp từ Anh - Việt hợp lệ. Hãy kiểm tra cột Nghĩa trong Kho Từ Vựng.</p>`;
                     return false;
                 }
 
-                const engList = pool.map(v => ({ id: v.id, text: v.word, type: 'eng' })).sort(() => Math.random() - 0.5);
-                const vnList = pool.map(v => ({ id: v.id, text: v.meaning, type: 'vn' })).sort(() => Math.random() - 0.5);
+                const engList = this.shuffleItems(pool.map(v => ({ id: v.id, text: v.word, type: 'eng' })));
+                const vnList = this.shuffleItems(pool.map(v => ({ id: v.id, text: v.meaning, type: 'vn' })));
 
                 board.innerHTML = `
                     <div class="space-y-3">
@@ -2860,7 +2973,113 @@
                 return true;
             }
 
+            renderScrambleRound() {
+                const board = document.getElementById('game-board-container');
+                const item = this.gamePool[this.gameRound % this.gamePool.length];
+                const letters = [...item.word.toLocaleLowerCase().replace(/[^a-z]/g, '')];
+                if (!letters.length) return false;
+                let scrambled = this.shuffleItems(letters);
+                if (scrambled.join('') === letters.join('') && letters.length > 1) {
+                    scrambled = [...scrambled.slice(1), scrambled[0]];
+                }
+                this.gameCurrentQuestion = { item, answer: letters.join('') };
+                board.innerHTML = `
+                    <div class="col-span-2 mx-auto w-full max-w-xl space-y-6 self-center rounded-2xl border border-notion-border bg-notion-bg p-5 dark:border-notion-darkBorder dark:bg-notion-darkBg sm:p-8">
+                        <p class="text-xs font-bold uppercase tracking-wider text-duo-blue">Nghĩa của từ</p>
+                        <h3 class="text-xl font-black sm:text-2xl">${escapeHTML(item.meaning)}</h3>
+                        <p class="rounded-xl bg-white/70 px-3 py-4 font-mono text-xl font-black tracking-[0.35em] text-duo-purple dark:bg-white/5">${escapeHTML(scrambled.join(' '))}</p>
+                        <form data-game-action="scramble-answer" class="flex flex-col gap-2 sm:flex-row">
+                            <input name="game-answer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Nhập từ tiếng Anh đã xáo chữ" placeholder="Nhập từ tiếng Anh..." class="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold dark:border-slate-600 dark:bg-slate-900">
+                            <button type="submit" class="rounded-xl bg-duo-blue px-5 py-3 text-sm font-black text-white hover:bg-duo-blueDark">Kiểm tra</button>
+                        </form>
+                        <p id="game-question-feedback" class="min-h-5 text-sm font-bold" aria-live="polite"></p>
+                    </div>
+                `;
+                board.querySelector('input[name="game-answer"]').focus();
+                return true;
+            }
+
+            renderTruthRound() {
+                const board = document.getElementById('game-board-container');
+                const item = this.gamePool[this.gameRound % this.gamePool.length];
+                const isCorrect = Math.random() >= 0.35;
+                const distractors = this.gamePool.filter(vocab => vocab.id !== item.id);
+                const displayedMeaning = isCorrect
+                    ? item.meaning
+                    : this.shuffleItems(distractors)[0].meaning;
+                this.gameCurrentQuestion = { item, isCorrect };
+                board.innerHTML = `
+                    <div class="col-span-2 mx-auto w-full max-w-xl space-y-6 self-center rounded-2xl border border-notion-border bg-notion-bg p-5 dark:border-notion-darkBorder dark:bg-notion-darkBg sm:p-8">
+                        <p class="text-xs font-bold uppercase tracking-wider text-duo-blue">Từ này có nghĩa là</p>
+                        <h3 class="text-2xl font-black sm:text-3xl">${escapeHTML(item.word)}</h3>
+                        <p class="rounded-xl bg-white/70 px-4 py-5 text-lg font-bold text-duo-purple dark:bg-white/5">${escapeHTML(displayedMeaning)}</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" data-game-answer="true" class="rounded-xl bg-duo-green px-4 py-3 font-black text-white hover:bg-duo-greenDark">Đúng</button>
+                            <button type="button" data-game-answer="false" class="rounded-xl bg-duo-red px-4 py-3 font-black text-white hover:brightness-95">Sai</button>
+                        </div>
+                        <p id="game-question-feedback" class="min-h-5 text-sm font-bold" aria-live="polite"></p>
+                    </div>
+                `;
+                return true;
+            }
+
+            answerScramble(answer) {
+                if (!this.gameIsRunning || this.gameMode !== 'scramble' || !this.gameCurrentQuestion) return;
+                const normalizedAnswer = String(answer).toLocaleLowerCase().replace(/[^a-z]/g, '');
+                const feedback = document.getElementById('game-question-feedback');
+                if (normalizedAnswer !== this.gameCurrentQuestion.answer) {
+                    this.playSFX('wrong');
+                    this.gameCombo = 1;
+                    document.getElementById('game-combo-text').textContent = 'x1';
+                    feedback.textContent = 'Chưa đúng, thử lại nhé!';
+                    feedback.className = 'min-h-5 text-sm font-bold text-duo-red';
+                    document.querySelector('input[name="game-answer"]')?.focus();
+                    return;
+                }
+                this.resolveGameAnswer(true);
+            }
+
+            answerGameQuestion(answer) {
+                if (!this.gameIsRunning || this.gameMode !== 'truth' || !this.gameCurrentQuestion) return;
+                this.resolveGameAnswer(answer === this.gameCurrentQuestion.isCorrect);
+            }
+
+            resolveGameAnswer(isCorrect) {
+                const feedback = document.getElementById('game-question-feedback');
+                if (isCorrect) {
+                    this.registerGameMatch();
+                    if (feedback) {
+                        feedback.textContent = 'Chính xác! +100 điểm';
+                        feedback.className = 'min-h-5 text-sm font-bold text-duo-green';
+                    }
+                } else {
+                    this.playSFX('wrong');
+                    this.gameCombo = 1;
+                    document.getElementById('game-combo-text').textContent = 'x1';
+                    if (feedback) {
+                        feedback.textContent = 'Chưa chính xác, lượt tiếp theo nhé!';
+                        feedback.className = 'min-h-5 text-sm font-bold text-duo-red';
+                    }
+                }
+                this.gameCurrentQuestion = null;
+                this.gameRound++;
+                this.gameTransitionTimer = setTimeout(() => {
+                    this.gameTransitionTimer = null;
+                    if (this.gameIsRunning) this.renderGameRound();
+                }, 450);
+            }
+
+            registerGameMatch() {
+                this.playSFX('correct');
+                this.gameScore += 100 * this.gameCombo;
+                this.gameCombo++;
+                if (this.gameCombo > 2) this.playSFX('combo');
+                document.getElementById('game-score-text').textContent = this.gameScore;
+                document.getElementById('game-combo-text').textContent = `x${this.gameCombo}`;
+            }
+
             handleGameCardClick(btn, id, type) {
+                if (!this.gameIsRunning || this.gameMode !== 'match') return;
                 if (btn.classList.contains('bg-duo-green')) return;
 
                 if (!this.gameSelectedCard) {
@@ -2880,24 +3099,21 @@
 
                     if (this.gameSelectedCard.id === id) {
                         // MATCH SUCCESS
-                        this.playSFX('correct');
+                        this.registerGameMatch();
                         [btn, this.gameSelectedCard.btn].forEach(card => {
                             card.classList.remove('is-selected', 'is-wrong');
                             card.classList.add('bg-duo-green', 'is-matched');
                         });
 
-                        this.gameScore += 100 * this.gameCombo;
-                        this.gameCombo++;
-                        if (this.gameCombo > 2) this.playSFX('combo');
-
-                        document.getElementById('game-score-text').textContent = this.gameScore;
-                        document.getElementById('game-combo-text').textContent = `x${this.gameCombo}`;
-
                         this.gameSelectedCard = null;
+                        this.gameRound++;
 
                         // Check if all cards cleared
                         if (document.querySelectorAll('.game-card:not(.bg-duo-green)').length === 0) {
-                            setTimeout(() => this.renderGameCards(), 400);
+                            this.gameTransitionTimer = setTimeout(() => {
+                                this.gameTransitionTimer = null;
+                                if (this.gameIsRunning) this.renderGameCards();
+                            }, 400);
                         }
                     } else {
                         this.playSFX('wrong');
@@ -2917,9 +3133,16 @@
             }
 
             endGame() {
+                if (!this.gameIsRunning) return;
+                this.gameIsRunning = false;
+                if (this.gameTimer) clearInterval(this.gameTimer);
+                if (this.gameTransitionTimer) clearTimeout(this.gameTransitionTimer);
+                this.gameTimer = null;
+                this.gameTransitionTimer = null;
                 confetti({ particleCount: 100, spread: 80 });
                 this.addXP(Math.floor(this.gameScore / 10));
                 alert(`🏁 Hết giờ!\nTổng điểm: ${this.gameScore}\nBạn nhận được: +${Math.floor(this.gameScore / 10)} XP`);
+                document.getElementById('game-mode-selector').classList.remove('hidden');
                 document.getElementById('game-start-screen').classList.remove('hidden');
             }
 
