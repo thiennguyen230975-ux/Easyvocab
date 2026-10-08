@@ -18,3 +18,5 @@ The app uses in-memory users and OTPs, so account data is not persistent and is 
 For local development, set a private `JWT_SECRET` before running `npm start`.
 
 The homepage uses the VocabMind learning dashboard in `public/index.html`. Google and Facebook sign-in also create an account on first successful sign-in. Set `GOOGLE_CLIENT_ID` and `FACEBOOK_APP_ID` in Render to enable the corresponding buttons. Vocabulary and learning progress are stored in the user's browser; they are not yet synced between devices or saved in the server database.
+
+Create and manage vocabulary decks from the **Kho Từ Vựng** tab. Deck names and vocabulary are saved in the current browser, and newly created decks are available in the flashcard selector.

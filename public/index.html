@@ -295,6 +295,10 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400">Quản lý, kéo thả quét chọn hàng loạt hoặc nhập file Excel/CSV/TXT</p>
                     </div>
                     <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                        <button onclick="app.openCreateSetModal()" class="px-4 py-2.5 rounded-2xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs flex items-center gap-2 transition-all">
+                            <span aria-hidden="true">＋</span>
+                            <span>Tạo Bộ Từ</span>
+                        </button>
                         <!-- Import File Button -->
                         <button onclick="document.getElementById('import-file-input').click()" class="px-4 py-2.5 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:bg-black/5 dark:hover:bg-white/5 font-semibold text-xs flex items-center gap-2 transition-all">
                             <svg class="w-4 h-4 text-duo-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
@@ -674,11 +678,33 @@
                 </div>
                 <div>
                     <label class="text-slate-500">Bộ Từ Vựng</label>
-                    <input type="text" id="add-set-input" placeholder="IELTS Academic" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                    <input type="text" id="add-set-input" list="vocab-set-options" placeholder="Chọn bộ có sẵn hoặc nhập tên mới" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
+                    <datalist id="vocab-set-options"></datalist>
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" onclick="app.closeAddModal()" class="px-4 py-2 rounded-xl text-slate-400">Hủy</button>
                     <button type="submit" class="px-5 py-2 rounded-xl bg-duo-green text-white font-bold shadow-md shadow-duo-green/20">Lưu Từ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="create-set-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-2xl p-6 sm:p-8 space-y-5 animate-pop">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-black">Tạo bộ từ vựng mới</h3>
+                <button type="button" onclick="app.closeCreateSetModal()" class="p-2 rounded-xl text-slate-400 hover:bg-black/5 dark:hover:bg-white/5" aria-label="Đóng">✕</button>
+            </div>
+            <p class="text-xs text-slate-500">Đặt tên bộ để sắp xếp từ vựng và chọn riêng bộ đó khi học flashcard.</p>
+            <form onsubmit="app.createVocabularySet(event)" class="space-y-4">
+                <div>
+                    <label for="new-set-name" class="text-xs font-bold text-slate-500">Tên bộ từ</label>
+                    <input id="new-set-name" type="text" required maxlength="60" placeholder="Ví dụ: IELTS Speaking" class="w-full mt-1 px-4 py-3 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-sm focus:ring-2 focus:ring-duo-blue outline-none">
+                </div>
+                <div id="create-set-message" role="status" class="hidden rounded-xl px-3 py-2 text-xs font-semibold"></div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="app.closeCreateSetModal()" class="px-4 py-2 rounded-xl text-slate-500">Hủy</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-duo-blue text-white font-bold">Tạo bộ</button>
                 </div>
             </form>
         </div>
@@ -714,6 +740,12 @@
                 this.user.loggedIn = false;
 
                 this.vocabs = JSON.parse(localStorage.getItem('vm_vocabs')) || DEFAULT_VOCAB_DATA;
+                const savedSets = JSON.parse(localStorage.getItem('vm_vocab_sets')) || [];
+                this.vocabSets = Array.from(new Set([
+                    ...DEFAULT_VOCAB_DATA.map(v => v.set),
+                    ...this.vocabs.map(v => v.set || 'Mặc định'),
+                    ...savedSets
+                ].map(set => set.trim()).filter(Boolean)));
                 this.selectedIds = new Set();
                 this.currentTab = 'dashboard';
                 this.quizMode = 'mcq';
@@ -967,6 +999,7 @@
 
             saveState() {
                 localStorage.setItem('vm_vocabs', JSON.stringify(this.vocabs));
+                localStorage.setItem('vm_vocab_sets', JSON.stringify(this.vocabSets));
                 localStorage.setItem('vm_user', JSON.stringify(this.user));
             }
 
@@ -1093,10 +1126,15 @@
                 const srsFilter = document.getElementById('vocab-srs-filter').value;
 
                 // Render Set Filter Options
-                const sets = Array.from(new Set(this.vocabs.map(v => v.set || 'Mặc định')));
+                const sets = this.getVocabularySets();
                 const setSelect = document.getElementById('vocab-set-filter');
-                setSelect.innerHTML = `<option value="ALL">Tất cả Bộ từ vựng</option>` + sets.map(s => `<option value="${s}">${s}</option>`).join('');
-                if (setFilter !== 'ALL') setSelect.value = setFilter;
+                const options = [new Option('Tất cả Bộ từ vựng', 'ALL')];
+                sets.forEach(set => options.push(new Option(set, set)));
+                setSelect.replaceChildren(...options);
+                setSelect.value = setFilter === 'ALL' || sets.includes(setFilter) ? setFilter : 'ALL';
+
+                const setOptions = document.getElementById('vocab-set-options');
+                setOptions.replaceChildren(...sets.map(set => new Option(set, set)));
 
                 const filtered = this.vocabs.filter(v => {
                     const matchSearch = v.word.toLowerCase().includes(search) || v.meaning.toLowerCase().includes(search);
@@ -1232,11 +1270,14 @@
             }
 
             bulkChangeSet() {
-                const newSet = prompt('Nhập tên Bộ từ vựng mới:');
+                const newSet = prompt('Nhập tên bộ từ vựng mới:')?.trim();
                 if (!newSet) return;
                 this.vocabs.forEach(v => {
                     if (this.selectedIds.has(v.id)) v.set = newSet;
                 });
+                if (!this.vocabSets.some(set => set.toLocaleLowerCase() === newSet.toLocaleLowerCase())) {
+                    this.vocabSets.push(newSet);
+                }
                 this.selectedIds.clear();
                 this.saveState();
                 this.renderVocabTable();
@@ -1266,6 +1307,7 @@
                             const word = row['Word'] || row['Từ tiếng Anh'] || row['word'];
                             const meaning = row['Meaning'] || row['Nghĩa'] || row['meaning'];
                             if (word && meaning) {
+                                const importedSet = String(row['Set'] || 'Imported File').trim();
                                 this.vocabs.push({
                                     id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
                                     word: word.trim(),
@@ -1273,13 +1315,16 @@
                                     pos: row['POS'] || row['pos'] || 'noun',
                                     meaning: meaning.trim(),
                                     example: row['Example'] || row['Ví dụ'] || '',
-                                    set: row['Set'] || 'Imported File',
+                                    set: importedSet,
                                     srsStage: 'new',
                                     interval: 0,
                                     easeFactor: 2.5,
                                     rep: 0,
                                     nextReview: Date.now()
                                 });
+                                if (!this.vocabSets.some(set => set.toLocaleLowerCase() === importedSet.toLocaleLowerCase())) {
+                                    this.vocabSets.push(importedSet);
+                                }
                                 addedCount++;
                             }
                         });
@@ -1297,7 +1342,7 @@
             initFlashcards() {
                 const select = document.getElementById('flashcard-set-select');
                 const selectedSet = select.value || 'ALL';
-                const sets = Array.from(new Set(this.vocabs.map(v => (v.set || 'Mặc định').trim())));
+                const sets = this.getVocabularySets();
                 const options = [new Option(`Tất cả Bộ từ (${this.vocabs.length})`, 'ALL')];
                 sets.forEach(set => options.push(new Option(set, set)));
                 select.replaceChildren(...options);
@@ -1740,6 +1785,59 @@
             openAddWordModal() { document.getElementById('add-modal').classList.remove('hidden'); }
             closeAddModal() { document.getElementById('add-modal').classList.add('hidden'); }
 
+            getVocabularySets() {
+                return Array.from(new Set([
+                    ...this.vocabSets,
+                    ...this.vocabs.map(v => v.set || 'Mặc định')
+                ].map(set => set.trim()).filter(Boolean)));
+            }
+
+            openCreateSetModal() {
+                document.getElementById('new-set-name').value = '';
+                document.getElementById('create-set-message').classList.add('hidden');
+                document.getElementById('create-set-modal').classList.remove('hidden');
+                document.getElementById('new-set-name').focus();
+            }
+
+            closeCreateSetModal() {
+                document.getElementById('create-set-modal').classList.add('hidden');
+            }
+
+            createVocabularySet(event) {
+                event.preventDefault();
+                const input = document.getElementById('new-set-name');
+                const name = input.value.trim();
+                const message = document.getElementById('create-set-message');
+                if (!name) {
+                    message.textContent = 'Vui lòng nhập tên bộ từ.';
+                    message.className = 'rounded-xl px-3 py-2 text-xs font-semibold bg-duo-red/10 text-duo-red';
+                    return;
+                }
+
+                const existing = this.getVocabularySets().find(set => set.toLocaleLowerCase() === name.toLocaleLowerCase());
+                if (existing) {
+                    message.textContent = `Bộ "${existing}" đã tồn tại.`;
+                    message.className = 'rounded-xl px-3 py-2 text-xs font-semibold bg-duo-red/10 text-duo-red';
+                    return;
+                }
+
+                this.vocabSets.push(name);
+                this.saveState();
+                this.renderVocabTable();
+                const vocabFilter = document.getElementById('vocab-set-filter');
+                vocabFilter.value = name;
+                this.renderVocabTable();
+                document.getElementById('add-set-input').value = name;
+
+                const flashcardSelect = document.getElementById('flashcard-set-select');
+                if (this.currentTab === 'flashcard') {
+                    this.initFlashcards();
+                    flashcardSelect.value = name;
+                    this.renderCurrentCard();
+                }
+                this.closeCreateSetModal();
+            }
+
             saveNewWord(e) {
                 e.preventDefault();
                 const word = document.getElementById('add-word-input').value;
@@ -1747,7 +1845,10 @@
                 const pos = document.getElementById('add-pos-input').value;
                 const meaning = document.getElementById('add-meaning-input').value;
                 const example = document.getElementById('add-example-input').value;
-                const set = document.getElementById('add-set-input').value || 'Mặc định';
+                const set = document.getElementById('add-set-input').value.trim() || 'Mặc định';
+                if (!this.vocabSets.some(existing => existing.toLocaleLowerCase() === set.toLocaleLowerCase())) {
+                    this.vocabSets.push(set);
+                }
 
                 this.vocabs.push({
                     id: Date.now().toString(),
@@ -1762,6 +1863,7 @@
                 this.saveState();
                 this.closeAddModal();
                 this.renderVocabTable();
+                if (this.currentTab === 'flashcard') this.initFlashcards();
             }
         }
 
