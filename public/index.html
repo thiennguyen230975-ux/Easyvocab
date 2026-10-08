@@ -59,8 +59,8 @@
     <style>
         /* Custom Styles for 3D Flashcard & Marquee Selection */
         .perspective-1000 { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
+        .transform-style-3d { -webkit-transform-style: preserve-3d; transform-style: preserve-3d; }
+        .backface-hidden { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
         
         .marquee-selection-box {
@@ -287,6 +287,29 @@
             font-size: clamp(2.5rem, 6vw, 4.5rem);
             line-height: 1.08;
             overflow-wrap: anywhere;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a;
+            opacity: 1;
+        }
+        #tab-flashcard #card-ipa-text {
+            color: #475569 !important;
+            -webkit-text-fill-color: #475569;
+            opacity: 1;
+        }
+        #tab-flashcard #card-example-text {
+            color: #64748b !important;
+            opacity: 1;
+        }
+        .dark #tab-flashcard #card-word-text {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a;
+        }
+        .dark #tab-flashcard #card-ipa-text {
+            color: #475569 !important;
+            -webkit-text-fill-color: #475569;
+        }
+        .dark #tab-flashcard #card-example-text {
+            color: #64748b !important;
         }
         #tab-flashcard #card-meaning-text { line-height: 1.2; }
         .tab-content input, .tab-content select, .tab-content textarea,
