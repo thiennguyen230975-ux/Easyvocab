@@ -602,7 +602,7 @@
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-black tracking-tight">Kho Từ Vựng Thông Minh</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Nhập bảng có cột Word/Meaning hoặc mỗi dòng theo dạng “từ | nghĩa” từ Excel, CSV, TXT, PDF hay Word (.docx).</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Nhập bảng có cột Word/Meaning; có thể thêm cột Topic/Chủ đề, nếu không ứng dụng sẽ tự phân loại. Hỗ trợ Excel, CSV, TXT, PDF và Word (.docx).</p>
                     </div>
                     <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
                         <button onclick="app.openCreateSetModal()" class="px-4 py-2.5 rounded-2xl bg-duo-blue/10 text-duo-blue hover:bg-duo-blue hover:text-white font-bold text-xs flex items-center gap-2 transition-all">
@@ -625,14 +625,25 @@
                 </div>
 
                 <!-- Filters Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div class="relative">
                         <input type="text" id="vocab-search-input" oninput="app.renderVocabTable()" placeholder="Tìm kiếm từ tiếng Anh, IPA, nghĩa..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
                         <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <select id="vocab-set-filter" onchange="app.renderVocabTable()" class="px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
-                        <option value="ALL">Tất cả Bộ từ vựng</option>
-                        <!-- Dynamic Set Options -->
+                    <div class="flex min-w-0 gap-2">
+                        <select id="vocab-set-filter" onchange="app.renderVocabTable()" class="min-w-0 flex-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
+                            <option value="ALL">Tất cả Bộ từ vựng</option>
+                            <!-- Dynamic Set Options -->
+                        </select>
+                        <button id="select-vocab-set-button" type="button" onclick="app.selectVocabularySet()" disabled class="shrink-0 px-3 py-2 rounded-xl bg-duo-blue/10 text-duo-blue font-bold text-[10px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-duo-blue hover:text-white transition-colors" title="Chọn toàn bộ từ trong bộ đang chọn">
+                            Chọn cả bộ
+                        </button>
+                        <button id="delete-vocab-set-button" type="button" onclick="app.deleteVocabularySet()" disabled class="shrink-0 px-3 py-2 rounded-xl bg-duo-red/10 text-duo-red font-bold text-[10px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-duo-red hover:text-white transition-colors" title="Xóa bộ đang chọn và toàn bộ từ trong bộ">
+                            Xóa bộ
+                        </button>
+                    </div>
+                    <select id="vocab-topic-filter" onchange="app.renderVocabTable()" class="px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
+                        <option value="ALL">Tất cả Chủ đề</option>
                     </select>
                     <select id="vocab-srs-filter" onchange="app.renderVocabTable()" class="px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder text-xs focus:outline-none focus:ring-2 focus:ring-duo-blue">
                         <option value="ALL">Tất cả Trạng thái SRS</option>
@@ -646,13 +657,16 @@
 
             <!-- Vocabulary Table Container with Drag Marquee Selection -->
             <div id="marquee-container" class="relative rounded-3xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder shadow-sm overflow-hidden select-none">
-                <p class="px-4 pt-3 text-xs text-slate-500">Rê chuột vào hàng để hiện ô chọn; chọn nhiều từ rồi bấm “Xóa Đã Chọn”. Trên điện thoại, ô chọn luôn hiển thị.</p>
+                <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
+                    <p id="vocab-topic-summary" class="text-xs font-semibold text-slate-500"></p>
+                    <p class="text-[11px] text-slate-400">Rê chuột vào hàng để hiện ô chọn; trên điện thoại, ô chọn luôn hiển thị.</p>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-black/5 dark:bg-white/5 border-b border-notion-border dark:border-notion-darkBorder text-slate-500 font-bold uppercase tracking-wider">
                             <tr>
                                 <th class="p-3.5 w-10 text-center">
-                                    <input type="checkbox" id="select-all-checkbox" onchange="app.toggleSelectAll(this.checked)" class="rounded border-slate-300 text-duo-blue focus:ring-duo-blue">
+                                    <input type="checkbox" id="select-all-checkbox" aria-label="Chọn tất cả từ vựng" onchange="app.toggleSelectAll(this.checked)" class="rounded border-slate-300 text-duo-blue focus:ring-duo-blue">
                                 </th>
                                 <th class="p-3.5">Từ Tiếng Anh</th>
                                 <th class="p-3.5">IPA (Anh-Anh)</th>
@@ -660,6 +674,7 @@
                                 <th class="p-3.5">Nghĩa Tiếng Việt</th>
                                 <th class="p-3.5">Ví Dụ Thực Tế</th>
                                 <th class="p-3.5">Bộ Từ</th>
+                                <th class="p-3.5">Chủ Đề</th>
                                 <th class="p-3.5">Trạng thái ôn tập</th>
                                 <th class="p-3.5 text-center">Thao Tác</th>
                             </tr>
@@ -992,6 +1007,23 @@
                     <input type="text" id="add-set-input" list="vocab-set-options" placeholder="Chọn bộ có sẵn hoặc nhập tên mới" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder focus:ring-2 focus:ring-duo-blue outline-none">
                     <datalist id="vocab-set-options"></datalist>
                 </div>
+                <div>
+                    <label for="add-topic-input" class="text-slate-500">Chủ đề</label>
+                    <select id="add-topic-input" class="w-full mt-1 px-3 py-2 rounded-xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder">
+                        <option value="AUTO">Tự phân loại theo nghĩa</option>
+                        <option value="Học tập & giáo dục">Học tập & giáo dục</option>
+                        <option value="Công việc & kinh doanh">Công việc & kinh doanh</option>
+                        <option value="Du lịch & giao thông">Du lịch & giao thông</option>
+                        <option value="Sức khỏe & cảm xúc">Sức khỏe & cảm xúc</option>
+                        <option value="Khoa học & công nghệ">Khoa học & công nghệ</option>
+                        <option value="Thiên nhiên & môi trường">Thiên nhiên & môi trường</option>
+                        <option value="Ăn uống & mua sắm">Ăn uống & mua sắm</option>
+                        <option value="Gia đình & đời sống">Gia đình & đời sống</option>
+                        <option value="Xã hội & giao tiếp">Xã hội & giao tiếp</option>
+                        <option value="Kỹ năng & phẩm chất">Kỹ năng & phẩm chất</option>
+                        <option value="Khác / cần xem lại">Khác / cần xem lại</option>
+                    </select>
+                </div>
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" onclick="app.closeAddModal()" class="px-4 py-2 rounded-xl text-slate-400">Hủy</button>
                     <button type="submit" class="px-5 py-2 rounded-xl bg-duo-green text-white font-bold shadow-md shadow-duo-green/20">Lưu Từ</button>
@@ -1051,7 +1083,46 @@
             ipa: new Set(['ipa', 'ipa pronunciation', 'ipa anh anh', 'phonetic', 'phonetics', 'phonetic transcription', 'pronunciation', 'pronunciation ipa', 'transcription', 'phien am', 'phien am ipa']),
             pos: new Set(['pos', 'part of speech', 'word type', 'tu loai']),
             example: new Set(['example', 'sentence', 'vi du', 'cau vi du']),
-            set: new Set(['set', 'deck', 'category', 'bo tu', 'bo tu vung'])
+            set: new Set(['set', 'deck', 'category', 'bo tu', 'bo tu vung']),
+            topic: new Set(['topic', 'theme', 'subject', 'topic group', 'theme group', 'chu de', 'nhom chu de', 'linh vuc'])
+        };
+
+        const VOCAB_TOPIC_KEYWORDS = {
+            'Học tập & giáo dục': ['education', 'study', 'student', 'school', 'university', 'teach', 'teacher', 'exam', 'lesson', 'lecture', 'curriculum', 'academic', 'knowledge', 'homework', 'education', 'hoc tap', 'giao duc', 'sinh vien', 'hoc sinh', 'truong hoc', 'bai hoc', 'giang day', 'kiem tra', 'thi cu', 'kien thuc'],
+            'Công việc & kinh doanh': ['work', 'job', 'career', 'office', 'business', 'company', 'employee', 'employer', 'salary', 'profit', 'finance', 'economy', 'investment', 'customer', 'manager', 'meeting', 'project', 'trade', 'cong viec', 'nghe nghiep', 'kinh doanh', 'cong ty', 'nhan vien', 'luong', 'loi nhuan', 'tai chinh', 'kinh te', 'khach hang', 'quan ly', 'hop dong'],
+            'Du lịch & giao thông': ['travel', 'trip', 'journey', 'tourism', 'tourist', 'airport', 'flight', 'hotel', 'train', 'bus', 'taxi', 'ticket', 'passport', 'luggage', 'traffic', 'road', 'station', 'du lich', 'chuyen di', 'san bay', 'chuyen bay', 'khach san', 'tau hoa', 'xe buyt', 've', 'ho chieu', 'hanh ly', 'giao thong', 'duong pho'],
+            'Sức khỏe & cảm xúc': ['health', 'healthy', 'illness', 'disease', 'doctor', 'hospital', 'medicine', 'pain', 'stress', 'anxiety', 'emotion', 'feeling', 'mental', 'physical', 'exercise', 'sleep', 'benh', 'suc khoe', 'bac si', 'benh vien', 'thuoc', 'dau don', 'cang thang', 'lo lang', 'cam xuc', 'tam ly', 'the chat', 'tap the duc', 'giac ngu'],
+            'Khoa học & công nghệ': ['science', 'scientist', 'technology', 'technical', 'computer', 'internet', 'software', 'hardware', 'digital', 'device', 'data', 'research', 'experiment', 'energy', 'physics', 'biology', 'chemistry', 'artificial intelligence', 'khoa hoc', 'cong nghe', 'may tinh', 'phan mem', 'thiet bi', 'du lieu', 'nghien cuu', 'thi nghiem', 'nang luong', 'vat ly', 'sinh hoc', 'hoa hoc'],
+            'Thiên nhiên & môi trường': ['nature', 'environment', 'environmental', 'climate', 'pollution', 'weather', 'animal', 'plant', 'forest', 'ocean', 'river', 'ecosystem', 'species', 'wildlife', 'tree', 'earth', 'natural', 'thien nhien', 'moi truong', 'khi hau', 'o nhiem', 'thoi tiet', 'dong vat', 'thuc vat', 'rung', 'bien', 'song', 'he sinh thai', 'loai', 'hoang da', 'cay', 'trai dat'],
+            'Ăn uống & mua sắm': ['food', 'eat', 'drink', 'meal', 'fruit', 'vegetable', 'meat', 'restaurant', 'kitchen', 'cook', 'recipe', 'taste', 'breakfast', 'lunch', 'dinner', 'shop', 'shopping', 'purchase', 'price', 'menu', 'thuc an', 'do an', 'an uong', 'bua an', 'trai cay', 'rau cu', 'thit', 'nha hang', 'nha bep', 'nau an', 'mon an', 'huong vi', 'bua sang', 'bua trua', 'bua toi', 'mua sam', 'gia ca', 'thuc don'],
+            'Gia đình & đời sống': ['family', 'home', 'house', 'room', 'household', 'daily', 'routine', 'clothes', 'cleaning', 'sleep', 'wake', 'morning', 'parent', 'child', 'mother', 'father', 'sister', 'brother', 'relative', 'gia dinh', 'nha cua', 'phong', 'hang ngay', 'sinh hoat', 'quan ao', 'don dep', 'buoi sang', 'cha me', 'con cai', 'me', 'bo', 'chi em', 'anh em', 'nguoi than'],
+            'Xã hội & giao tiếp': ['communicate', 'communication', 'conversation', 'speak', 'talk', 'listen', 'discuss', 'persuade', 'relationship', 'friend', 'community', 'culture', 'society', 'social', 'polite', 'greet', 'giao tiep', 'tro chuyen', 'noi chuyen', 'lang nghe', 'thao luan', 'thuyet phuc', 'moi quan he', 'ban be', 'cong dong', 'van hoa', 'xa hoi', 'lich su', 'chao hoi'],
+            'Kỹ năng & phẩm chất': ['perseverance', 'resilience', 'meticulous', 'ambiguity', 'coherent', 'pragmatic', 'spontaneous', 'patience', 'confidence', 'creative', 'curious', 'honest', 'brave', 'careful', 'ability', 'skill', 'quality', 'behavior', 'attitude', 'character', 'thinking', 'decision', 'problem solving', 'kiên trì', 'nhan nai', 'phuc hoi', 'ti mi', 'mo ho', 'mach lac', 'thuc te', 'tu phat', 'kien nhan', 'tu tin', 'sang tao', 'to mo', 'trung thuc', 'can dam', 'can than', 'ky nang', 'pham chat', 'hanh vi', 'thai do', 'tinh cach', 'tu duy', 'quyet dinh', 'giai quyet van de']
+        };
+        const VOCAB_TOPIC_LABELS = [...Object.keys(VOCAB_TOPIC_KEYWORDS), 'Khác / cần xem lại'];
+        const VOCAB_SET_TO_REMOVE = 'Imported: 1000-tu-vung-tieng-anh-theo-chu-de-thong-dung';
+        const VOCAB_SET_REMOVAL_MIGRATION_KEY = 'vm_migration_removed_1000_vocab_set_v1';
+
+        const normalizeTopicText = value => ` ${String(value || '')
+            .toLocaleLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()} `;
+
+        const classifyVocabularyTopic = vocab => {
+            const text = normalizeTopicText(`${vocab.word || ''} ${vocab.meaning || ''} ${vocab.example || ''}`);
+            let bestTopic = 'Khác / cần xem lại';
+            let bestScore = 0;
+
+            Object.entries(VOCAB_TOPIC_KEYWORDS).forEach(([topic, keywords]) => {
+                const score = keywords.reduce((total, keyword) => total + Number(text.includes(normalizeTopicText(keyword))), 0);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestTopic = topic;
+                }
+            });
+            return bestTopic;
         };
 
         const normalizeImportHeader = header => String(header)
@@ -1075,8 +1146,18 @@
                 normalized.meaning = meaning;
                 normalized.ipa = ipa;
             }
+            normalized.topic = VOCAB_TOPIC_LABELS.includes(String(normalized.topic || '').trim())
+                ? String(normalized.topic).trim()
+                : classifyVocabularyTopic(normalized);
             return normalized;
         };
+        const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        })[character]);
 
         const AVATARS = ['🎓', '🦁', '🚀', '🦊', '🦉', '⚡', '🤖', '👑', '🐼', '🐉', '🎨', '🌟'];
 
@@ -1094,11 +1175,22 @@
                 };
                 this.user.loggedIn = false;
 
-                this.vocabs = JSON.parse(localStorage.getItem('vm_vocabs')) || DEFAULT_VOCAB_DATA;
+                let storedVocabs = JSON.parse(localStorage.getItem('vm_vocabs')) || DEFAULT_VOCAB_DATA;
+                let savedSets = JSON.parse(localStorage.getItem('vm_vocab_sets')) || [];
+                if (localStorage.getItem(VOCAB_SET_REMOVAL_MIGRATION_KEY) !== 'true') {
+                    const isRemovedSet = set => String(set || '').trim().toLocaleLowerCase()
+                        === VOCAB_SET_TO_REMOVE.toLocaleLowerCase();
+                    storedVocabs = storedVocabs.filter(vocab => !isRemovedSet(vocab.set));
+                    savedSets = savedSets.filter(set => !isRemovedSet(set));
+                    localStorage.setItem('vm_vocabs', JSON.stringify(storedVocabs));
+                    localStorage.setItem('vm_vocab_sets', JSON.stringify(savedSets));
+                    localStorage.setItem(VOCAB_SET_REMOVAL_MIGRATION_KEY, 'true');
+                }
+                this.vocabs = storedVocabs;
                 let migratedVocabulary = false;
                 this.vocabs = this.vocabs.map(vocab => {
                     const normalized = normalizeVocabularyFields(vocab);
-                    if (normalized.meaning !== vocab.meaning || normalized.ipa !== vocab.ipa) {
+                    if (normalized.meaning !== vocab.meaning || normalized.ipa !== vocab.ipa || normalized.topic !== vocab.topic) {
                         migratedVocabulary = true;
                     }
                     const correction = DEFAULT_IPA_CORRECTIONS[vocab.word];
@@ -1109,9 +1201,7 @@
                     return normalized;
                 });
                 if (migratedVocabulary) localStorage.setItem('vm_vocabs', JSON.stringify(this.vocabs));
-                const savedSets = JSON.parse(localStorage.getItem('vm_vocab_sets')) || [];
                 this.vocabSets = Array.from(new Set([
-                    ...DEFAULT_VOCAB_DATA.map(v => v.set),
                     ...this.vocabs.map(v => v.set || 'Mặc định'),
                     ...savedSets
                 ].map(set => set.trim()).filter(Boolean)));
@@ -1186,6 +1276,9 @@
                 this.sessionCheckPromise = this.restoreSession();
                 this.initializeSocialAuth();
                 this.initTTSVoices();
+                this.setupVocabularyTableActions();
+                this.setupQuizActions();
+                this.setupGameActions();
                 this.switchTab('dashboard');
                 this.setupMarqueeDragSelection();
 
@@ -1392,8 +1485,8 @@
                 if (this.user.loggedIn) {
                     container.innerHTML = `
                         <button onclick="app.openSettingsModal()" class="flex items-center gap-2 px-3 py-1 rounded-2xl bg-notion-card dark:bg-notion-darkCard border border-notion-border dark:border-notion-darkBorder hover:border-duo-blue transition-all">
-                            <span class="text-lg">${this.user.avatar}</span>
-                            <span class="hidden sm:inline font-bold text-xs">${this.user.name}</span>
+                            <span class="text-lg">${escapeHTML(this.user.avatar)}</span>
+                            <span class="hidden sm:inline font-bold text-xs">${escapeHTML(this.user.name)}</span>
                         </button>
                     `;
                 } else {
@@ -1496,6 +1589,7 @@
             renderVocabTable() {
                 const search = document.getElementById('vocab-search-input').value.toLowerCase();
                 const setFilter = document.getElementById('vocab-set-filter').value;
+                const topicFilter = document.getElementById('vocab-topic-filter').value;
                 const srsFilter = document.getElementById('vocab-srs-filter').value;
 
                 // Render Set Filter Options
@@ -1505,19 +1599,56 @@
                 sets.forEach(set => options.push(new Option(set, set)));
                 setSelect.replaceChildren(...options);
                 setSelect.value = setFilter === 'ALL' || sets.includes(setFilter) ? setFilter : 'ALL';
+                const setVocabularyCount = setSelect.value === 'ALL'
+                    ? 0
+                    : this.vocabs.filter(vocab => vocab.set === setSelect.value).length;
+                const selectSetButton = document.getElementById('select-vocab-set-button');
+                selectSetButton.disabled = setSelect.value === 'ALL' || setVocabularyCount === 0;
+                selectSetButton.textContent = `Chọn cả bộ (${setVocabularyCount})`;
+                document.getElementById('delete-vocab-set-button').disabled = setSelect.value === 'ALL';
+
+                const topicSelect = document.getElementById('vocab-topic-filter');
+                const topicOptions = [new Option('Tất cả Chủ đề', 'ALL')];
+                VOCAB_TOPIC_LABELS.forEach(topic => {
+                    const count = this.vocabs.filter(vocab => vocab.topic === topic).length;
+                    if (count > 0) topicOptions.push(new Option(`${topic} (${count})`, topic));
+                });
+                topicSelect.replaceChildren(...topicOptions);
+                topicSelect.value = topicOptions.some(option => option.value === topicFilter) ? topicFilter : 'ALL';
 
                 const setOptions = document.getElementById('vocab-set-options');
                 setOptions.replaceChildren(...sets.map(set => new Option(set, set)));
 
                 const filtered = this.vocabs.filter(v => {
-                    const matchSearch = v.word.toLowerCase().includes(search) || v.meaning.toLowerCase().includes(search);
+                    const matchSearch = v.word.toLowerCase().includes(search)
+                        || v.meaning.toLowerCase().includes(search)
+                        || (v.topic || '').toLowerCase().includes(search);
                     const matchSet = setFilter === 'ALL' || v.set === setFilter;
+                    const matchTopic = topicFilter === 'ALL' || v.topic === topicFilter;
                     const matchSrs = srsFilter === 'ALL' || v.srsStage === srsFilter;
-                    return matchSearch && matchSet && matchSrs;
+                    return matchSearch && matchSet && matchTopic && matchSrs;
                 });
+                const selectAllCheckbox = document.getElementById('select-all-checkbox');
+                selectAllCheckbox.checked = this.vocabs.length > 0 && this.vocabs.every(vocab => this.selectedIds.has(vocab.id));
+                selectAllCheckbox.indeterminate = !selectAllCheckbox.checked && this.selectedIds.size > 0;
+
+                const groupedTopics = VOCAB_TOPIC_LABELS
+                    .map(topic => ({ topic, words: filtered.filter(vocab => vocab.topic === topic) }))
+                    .filter(group => group.words.length > 0);
+                document.getElementById('vocab-topic-summary').textContent =
+                    `${filtered.length} từ trong ${groupedTopics.length} cụm chủ đề`;
 
                 const tbody = document.getElementById('vocab-table-body');
-                tbody.innerHTML = filtered.map(v => {
+                tbody.innerHTML = groupedTopics.map(group => `
+                    <tr class="topic-group-row">
+                        <td colspan="10" class="px-4 py-3 bg-blue-50/80 dark:bg-blue-950/30 border-y border-blue-100 dark:border-blue-900/40">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="font-extrabold text-blue-800 dark:text-blue-200">${group.topic}</span>
+                                <span class="rounded-full bg-white/80 dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-300">${group.words.length} từ</span>
+                            </div>
+                        </td>
+                    </tr>
+                    ${group.words.map(v => {
                     const isChecked = this.selectedIds.has(v.id);
                     let srsBadge = '<span class="px-2 py-0.5 rounded-full bg-slate-400/10 text-slate-500 font-bold">Mới</span>';
                     if (v.srsStage === 'learning') srsBadge = '<span class="px-2 py-0.5 rounded-full bg-duo-orange/10 text-duo-orange font-bold">Đang học</span>';
@@ -1525,28 +1656,85 @@
                     if (v.srsStage === 'mastered') srsBadge = '<span class="px-2 py-0.5 rounded-full bg-duo-green/10 text-duo-green font-bold">Thành thạo</span>';
 
                     return `
-                        <tr class="vocab-row hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isChecked ? 'bg-duo-blue/10' : ''}" data-id="${v.id}">
+                        <tr class="vocab-row hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isChecked ? 'bg-duo-blue/10' : ''}" data-id="${escapeHTML(v.id)}">
                             <td class="p-3.5 text-center">
-                                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-duo-blue focus:ring-duo-blue" aria-label="Chọn ${v.word}" ${isChecked ? 'checked' : ''} onchange="app.toggleSelectRow('${v.id}', this.checked)">
+                                <input type="checkbox" data-vocab-action="select" class="row-checkbox rounded border-slate-300 text-duo-blue focus:ring-duo-blue" aria-label="Chọn ${escapeHTML(v.word)}" ${isChecked ? 'checked' : ''}>
                             </td>
                             <td class="p-3.5 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                <span>${v.word}</span>
-                                <button onclick="app.speakText('${v.word}')" class="text-duo-blue hover:scale-110"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg></button>
+                                <span>${escapeHTML(v.word)}</span>
+                                <button data-vocab-action="speak" class="text-duo-blue hover:scale-110" aria-label="Phát âm ${escapeHTML(v.word)}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg></button>
                             </td>
-                            <td class="p-3.5 font-mono text-slate-400">${v.ipa || '-'}</td>
-                            <td class="p-3.5 uppercase font-semibold text-[10px] text-slate-500">${v.pos || 'noun'}</td>
-                            <td class="p-3.5 font-medium text-duo-green">${v.meaning}</td>
-                            <td class="p-3.5 text-slate-400 italic max-w-xs truncate" title="${v.example || ''}">${v.example || '-'}</td>
-                            <td class="p-3.5"><span class="px-2 py-0.5 rounded-lg bg-black/5 dark:bg-white/5 font-semibold text-[11px]">${v.set || 'Mặc định'}</span></td>
+                            <td class="p-3.5 font-mono text-slate-400">${escapeHTML(v.ipa || '-')}</td>
+                            <td class="p-3.5 uppercase font-semibold text-[10px] text-slate-500">${escapeHTML(v.pos || 'noun')}</td>
+                            <td class="p-3.5 font-medium text-duo-green">${escapeHTML(v.meaning)}</td>
+                            <td class="p-3.5 text-slate-400 italic max-w-xs truncate" title="${escapeHTML(v.example || '')}">${escapeHTML(v.example || '-')}</td>
+                            <td class="p-3.5"><span class="px-2 py-0.5 rounded-lg bg-black/5 dark:bg-white/5 font-semibold text-[11px]">${escapeHTML(v.set || 'Mặc định')}</span></td>
+                            <td class="p-2">
+                                <select data-vocab-action="topic" class="topic-row-select max-w-44 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" aria-label="Chủ đề của ${escapeHTML(v.word)}">
+                                    ${VOCAB_TOPIC_LABELS.map(topic => `<option value="${escapeHTML(topic)}" ${v.topic === topic ? 'selected' : ''}>${escapeHTML(topic)}</option>`).join('')}
+                                </select>
+                            </td>
                             <td class="p-3.5">${srsBadge}</td>
                             <td class="p-3.5 text-center space-x-1">
                                 <button onclick="app.deleteWord('${v.id}')" class="p-1 text-duo-red hover:bg-duo-red/10 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                             </td>
                         </tr>
                     `;
-                }).join('');
+                }).join('')}
+                `).join('');
 
                 this.updateFloatingActionBar();
+            }
+
+            setupVocabularyTableActions() {
+                const tbody = document.getElementById('vocab-table-body');
+                tbody.addEventListener('change', event => {
+                    const control = event.target.closest('[data-vocab-action]');
+                    if (!control) return;
+                    const row = control.closest('.vocab-row');
+                    if (!row) return;
+                    if (control.dataset.vocabAction === 'select') this.toggleSelectRow(row.dataset.id, control.checked);
+                    if (control.dataset.vocabAction === 'topic') this.updateVocabularyTopic(row.dataset.id, control.value);
+                });
+                tbody.addEventListener('click', event => {
+                    const button = event.target.closest('button[data-vocab-action]');
+                    if (!button) return;
+                    const row = button.closest('.vocab-row');
+                    if (!row) return;
+                    if (button.dataset.vocabAction === 'speak') {
+                        const vocab = this.vocabs.find(item => item.id === row.dataset.id);
+                        if (vocab) this.speakText(vocab.word);
+                    }
+                    if (button.dataset.vocabAction === 'delete') this.deleteWord(row.dataset.id);
+                });
+            }
+
+            setupQuizActions() {
+                const view = document.getElementById('quiz-question-view');
+                view.addEventListener('click', event => {
+                    const option = event.target.closest('.quiz-option');
+                    if (option) {
+                        this.checkQuizChoice(option, option.dataset.correct === 'true');
+                        return;
+                    }
+                    const button = event.target.closest('[data-quiz-answer], [data-speak-word]');
+                    if (!button) return;
+                    if (button.hasAttribute('data-speak-word')) {
+                        this.speakText(button.dataset.speakWord);
+                        return;
+                    }
+                    const input = view.querySelector('#quiz-input-text, #quiz-dictation-input');
+                    this.checkAnswer(input.value.trim().toLowerCase() === button.dataset.quizAnswer.toLowerCase(), button.dataset.quizAnswer);
+                });
+            }
+
+            setupGameActions() {
+                const board = document.getElementById('game-board-container');
+                board.addEventListener('click', event => {
+                    const button = event.target.closest('.game-card[data-id]');
+                    if (!button) return;
+                    this.handleGameCardClick(button, button.dataset.id, button.dataset.type);
+                });
             }
 
             /* Marquee Selection Logic */
@@ -1556,7 +1744,7 @@
                 let startX, startY, marqueeBox;
 
                 container.addEventListener('mousedown', (e) => {
-                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                    if (['INPUT', 'BUTTON', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) || e.target.closest('button, select, textarea')) return;
                     isDragging = true;
                     const rect = container.getBoundingClientRect();
                     startX = e.clientX - rect.left;
@@ -1621,10 +1809,56 @@
                 this.renderVocabTable();
             }
 
+            selectVocabularySet() {
+                const selectedSet = document.getElementById('vocab-set-filter').value;
+                if (selectedSet === 'ALL') return;
+                this.vocabs.forEach(vocab => {
+                    if (vocab.set === selectedSet) this.selectedIds.add(vocab.id);
+                });
+                this.renderVocabTable();
+            }
+
+            deleteVocabularySet() {
+                const selectedSet = document.getElementById('vocab-set-filter').value;
+                if (selectedSet === 'ALL') return;
+                const wordIds = new Set(this.vocabs
+                    .filter(vocab => vocab.set === selectedSet)
+                    .map(vocab => vocab.id));
+                const wordCount = wordIds.size;
+                const confirmation = wordCount > 0
+                    ? `Xóa bộ "${selectedSet}" và toàn bộ ${wordCount} từ trong bộ này? Thao tác này không thể hoàn tác.`
+                    : `Xóa bộ "${selectedSet}"? Thao tác này không thể hoàn tác.`;
+                if (!confirm(confirmation)) return;
+
+                this.vocabs = this.vocabs.filter(vocab => !wordIds.has(vocab.id));
+                this.vocabSets = this.vocabSets.filter(set => set !== selectedSet);
+                this.selectedIds = new Set([...this.selectedIds].filter(id => !wordIds.has(id)));
+                this.saveState();
+                document.getElementById('vocab-set-filter').value = 'ALL';
+
+                const flashcardSet = document.getElementById('flashcard-set-select');
+                if (flashcardSet.value === selectedSet) {
+                    flashcardSet.value = 'ALL';
+                    this.initFlashcards();
+                }
+                this.renderVocabTable();
+            }
+
+            updateVocabularyTopic(id, topic) {
+                const vocab = this.vocabs.find(item => item.id === id);
+                if (!vocab || !VOCAB_TOPIC_LABELS.includes(topic)) return;
+                vocab.topic = topic;
+                this.saveState();
+                this.renderVocabTable();
+            }
+
             updateFloatingActionBar() {
                 const bar = document.getElementById('floating-action-bar');
                 const count = this.selectedIds.size;
                 document.getElementById('selected-count').textContent = count;
+                const selectAllCheckbox = document.getElementById('select-all-checkbox');
+                selectAllCheckbox.checked = this.vocabs.length > 0 && this.vocabs.every(vocab => this.selectedIds.has(vocab.id));
+                selectAllCheckbox.indeterminate = !selectAllCheckbox.checked && count > 0;
                 if (count > 0) bar.classList.remove('hidden');
                 else bar.classList.add('hidden');
             }
@@ -1792,7 +2026,8 @@
                         ipa: findHeaderIndex('ipa'),
                         pos: findHeaderIndex('pos'),
                         example: findHeaderIndex('example'),
-                        set: findHeaderIndex('set')
+                        set: findHeaderIndex('set'),
+                        topic: findHeaderIndex('topic')
                     };
                     tableRows.slice(1).forEach(cells => {
                         const row = {};
@@ -1845,7 +2080,8 @@
                         ipa: String(findValue('ipa') || '').trim(),
                         pos: String(findValue('pos') || 'noun').trim(),
                         example: String(findValue('example') || '').trim(),
-                        set: String(findValue('set') || '').trim()
+                        set: String(findValue('set') || '').trim(),
+                        topic: String(findValue('topic') || '').trim()
                     }));
                 });
                 return result;
@@ -1982,26 +2218,26 @@
                     view.innerHTML = `
                         <div class="text-center space-y-2">
                             <span class="text-xs font-bold text-duo-blue uppercase">Chọn nghĩa chính xác của từ:</span>
-                            <h2 class="text-3xl font-black">${target.word}</h2>
-                            <p class="text-xs text-slate-400 font-mono">${target.ipa || ''}</p>
+                            <h2 class="text-3xl font-black">${escapeHTML(target.word)}</h2>
+                            <p class="text-xs text-slate-400 font-mono">${escapeHTML(target.ipa || '')}</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
                             ${options.map(opt => `
-                                <button onclick="app.checkQuizChoice(this, ${opt === target.meaning})" class="quiz-option p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-blue font-bold text-left text-sm transition-all">
-                                    ${opt}
+                                <button data-correct="${opt === target.meaning}" class="quiz-option p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-blue font-bold text-left text-sm transition-all">
+                                    ${escapeHTML(opt)}
                                 </button>
                             `).join('')}
                         </div>
                     `;
                 } else if (this.quizMode === 'fill') {
-                    const maskedExample = target.example ? target.example.replace(new RegExp(target.word, 'gi'), '_____') : `Sự lựa chọn chính xác cho: "${target.meaning}" là _____`;
+                    const maskedExample = target.example ? target.example.replace(new RegExp(target.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '_____') : `Sự lựa chọn chính xác cho: "${target.meaning}" là _____`;
                     view.innerHTML = `
                         <div class="text-center space-y-4">
                             <span class="text-xs font-bold text-duo-purple uppercase">Điền từ thích hợp vào khoảng trống:</span>
-                            <p class="text-lg font-bold italic text-slate-700 dark:text-slate-200">"${maskedExample}"</p>
-                            <p class="text-xs text-duo-green font-bold">Gợi ý nghĩa: ${target.meaning}</p>
+                            <p class="text-lg font-bold italic text-slate-700 dark:text-slate-200">"${escapeHTML(maskedExample)}"</p>
+                            <p class="text-xs text-duo-green font-bold">Gợi ý nghĩa: ${escapeHTML(target.meaning)}</p>
                             <input type="text" id="quiz-input-text" placeholder="Nhập từ tiếng Anh..." class="w-full max-w-sm px-4 py-3 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder font-bold text-center text-lg focus:ring-2 focus:ring-duo-blue outline-none">
-                            <button onclick="app.checkAnswer(document.getElementById('quiz-input-text').value.trim().toLowerCase() === '${target.word.toLowerCase()}', '${target.word}')" class="px-8 py-3 rounded-2xl bg-duo-blue text-white font-bold text-sm shadow-md">XÁC NHẬN</button>
+                            <button data-quiz-answer="${escapeHTML(target.word)}" class="px-8 py-3 rounded-2xl bg-duo-blue text-white font-bold text-sm shadow-md">XÁC NHẬN</button>
                         </div>
                     `;
                 } else if (this.quizMode === 'listen') {
@@ -2009,13 +2245,13 @@
                         <div class="text-center space-y-4">
                             <span class="text-xs font-bold text-duo-orange uppercase">Luyện Nghe & Gõ Lại Từ:</span>
                             <div>
-                                <button onclick="app.speakText('${target.word}')" class="p-5 rounded-full bg-duo-orange/10 text-duo-orange hover:scale-110 transition-transform shadow-lg">
+                                <button data-speak-word="${escapeHTML(target.word)}" class="p-5 rounded-full bg-duo-orange/10 text-duo-orange hover:scale-110 transition-transform shadow-lg">
                                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
                                 </button>
                             </div>
                             <input type="text" id="quiz-dictation-input" placeholder="Gõ từ bạn nghe được..." class="w-full max-w-sm px-4 py-3 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder font-bold text-center text-lg focus:ring-2 focus:ring-duo-orange outline-none">
                             <div>
-                                <button onclick="app.checkAnswer(document.getElementById('quiz-dictation-input').value.trim().toLowerCase() === '${target.word.toLowerCase()}', '${target.word}')" class="px-8 py-3 rounded-2xl bg-duo-orange text-white font-bold text-sm shadow-md">KIỂM TRA</button>
+                                <button data-quiz-answer="${escapeHTML(target.word)}" class="px-8 py-3 rounded-2xl bg-duo-orange text-white font-bold text-sm shadow-md">KIỂM TRA</button>
                             </div>
                         </div>
                     `;
@@ -2114,15 +2350,15 @@
                 board.innerHTML = `
                     <div class="space-y-3">
                         ${engList.map(item => `
-                            <button onclick="app.handleGameCardClick(this, '${item.id}', 'eng')" class="game-card w-full p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-orange transition-all text-left font-bold text-sm">
-                                ${item.text}
+                            <button data-id="${escapeHTML(item.id)}" data-type="eng" class="game-card w-full p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-orange transition-all text-left font-bold text-sm">
+                                ${escapeHTML(item.text)}
                             </button>
                         `).join('')}
                     </div>
                     <div class="space-y-3">
                         ${vnList.map(item => `
-                            <button onclick="app.handleGameCardClick(this, '${item.id}', 'vn')" class="game-card w-full p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-orange transition-all text-left font-bold text-sm">
-                                ${item.text}
+                            <button data-id="${escapeHTML(item.id)}" data-type="vn" class="game-card w-full p-4 rounded-2xl bg-notion-bg dark:bg-notion-darkBg border border-notion-border dark:border-notion-darkBorder hover:border-duo-orange transition-all text-left font-bold text-sm">
+                                ${escapeHTML(item.text)}
                             </button>
                         `).join('')}
                     </div>
@@ -2247,7 +2483,7 @@
                 if (!select) return;
 
                 const enVoices = voices.filter(v => v.lang.startsWith('en'));
-                select.innerHTML = enVoices.map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`).join('');
+                select.innerHTML = enVoices.map((v, i) => `<option value="${i}">${escapeHTML(v.name)} (${escapeHTML(v.lang)})</option>`).join('');
             }
 
             updateTTSSettings() {
@@ -2437,19 +2673,21 @@
                 const meaning = document.getElementById('add-meaning-input').value;
                 const example = document.getElementById('add-example-input').value;
                 const set = document.getElementById('add-set-input').value.trim() || 'Mặc định';
+                const selectedTopic = document.getElementById('add-topic-input').value;
                 if (!this.vocabSets.some(existing => existing.toLocaleLowerCase() === set.toLocaleLowerCase())) {
                     this.vocabSets.push(set);
                 }
 
-                this.vocabs.push({
+                this.vocabs.push(normalizeVocabularyFields({
                     id: Date.now().toString(),
                     word, ipa, pos, meaning, example, set,
+                    topic: selectedTopic === 'AUTO' ? '' : selectedTopic,
                     srsStage: 'new',
                     interval: 0,
                     easeFactor: 2.5,
                     rep: 0,
                     nextReview: Date.now()
-                });
+                }));
 
                 this.saveState();
                 this.closeAddModal();
