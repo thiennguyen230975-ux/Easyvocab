@@ -1757,6 +1757,9 @@
 
                 if (isCorrect) {
                     button.classList.add('is-correct');
+                    button.style.setProperty('background-color', '#58CC02', 'important');
+                    button.style.setProperty('border-color', '#58CC02', 'important');
+                    button.style.setProperty('color', '#FFFFFF', 'important');
                     this.playSFX('correct');
                     confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
                     this.addXP(20);
@@ -1771,9 +1774,15 @@
                 }
 
                 button.classList.add('is-wrong');
+                button.style.setProperty('background-color', '#FF4B4B', 'important');
+                button.style.setProperty('border-color', '#FF4B4B', 'important');
+                button.style.setProperty('color', '#FFFFFF', 'important');
                 this.playSFX('wrong');
                 this.quizFeedbackTimer = setTimeout(() => {
                     button.classList.remove('is-wrong');
+                    button.style.removeProperty('background-color');
+                    button.style.removeProperty('border-color');
+                    button.style.removeProperty('color');
                     options.forEach(option => { option.disabled = false; });
                     this.quizFeedbackTimer = null;
                 }, 650);
