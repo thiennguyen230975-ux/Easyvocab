@@ -273,7 +273,6 @@ app.get('/', (req, res) => {
   
   <!-- Google & Facebook SDK -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
@@ -406,14 +405,27 @@ app.get('/', (req, res) => {
     ];
 
     // Khởi tạo Facebook SDK
+    const facebookAppId = ${JSON.stringify(FACEBOOK_APP_ID)};
     window.fbAsyncInit = function() {
       FB.init({
-        appId      : '${FACEBOOK_APP_ID}',
+        appId      : facebookAppId,
         cookie     : true,
         xfbml      : true,
         version    : 'v18.0'
       });
+      FB.AppEvents.logPageView();
     };
+
+    if (facebookAppId) {
+      (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = 'https://connect.facebook.net/vi_VN/sdk.js';
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       checkAuthStatus();
@@ -448,6 +460,11 @@ app.get('/', (req, res) => {
 
     // Xử lý Đăng Nhập Facebook Client
     function handleFacebookLogin() {
+      if (!facebookAppId) {
+        alert('Đăng nhập Facebook chưa được cấu hình. Vui lòng thêm FACEBOOK_APP_ID trên Render!');
+        return;
+      }
+
       if (typeof FB === 'undefined') {
         alert('Facebook SDK chưa sẵn sàng hoặc bị trình chặn quảng cáo (AdBlock) chặn!');
         return;
