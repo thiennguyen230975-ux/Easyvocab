@@ -20,3 +20,5 @@ For local development, set a private `JWT_SECRET` before running `npm start`.
 The homepage uses the VocabMind learning dashboard in `public/index.html`. Google and Facebook sign-in also create an account on first successful sign-in. Set `GOOGLE_CLIENT_ID` and `FACEBOOK_APP_ID` in Render to enable the corresponding buttons. Vocabulary and learning progress are stored in the user's browser; they are not yet synced between devices or saved in the server database.
 
 Create and manage vocabulary decks from the **Kho Từ Vựng** tab. Deck names and vocabulary are saved in the current browser, and newly created decks are available in the flashcard selector.
+
+The vocabulary importer accepts Excel, CSV, TXT, PDF, and Word `.docx` files. Document imports need selectable text and a table with English/Word and Meaning/Translation columns, or text lines in the form `word | meaning`. Scanned image-only PDFs and legacy `.doc` files are not supported.
