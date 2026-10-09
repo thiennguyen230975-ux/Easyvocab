@@ -548,15 +548,19 @@
             border-radius: 0.75rem;
         }
         #google-signin-button {
-            min-height: 2.25rem;
-            width: 15rem;
-            max-width: 100%;
+            min-height: 2.75rem;
+            width: 100%;
+            max-width: 25rem;
             margin-inline: auto;
             overflow: hidden;
         }
+        #google-signin-button > div,
         #google-signin-button iframe {
             display: block;
-            width: 15rem !important;
+            width: 100% !important;
+            height: 2.75rem !important;
+            min-height: 2.75rem !important;
+            aspect-ratio: auto !important;
             max-width: 100%;
             margin-inline: auto;
         }
