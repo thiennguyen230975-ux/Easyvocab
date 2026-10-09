@@ -268,7 +268,7 @@
                 this.retentionChart = null;
                 this.googleClientId = '';
                 this.facebookAppId = '';
-                this.googleInitialized = false;
+                this.googleTokenClient = null;
                 this.sessionCheckPromise = null;
                 this.stateSyncTimer = null;
                 this.stateSyncPromise = Promise.resolve();
@@ -338,6 +338,7 @@
                     saveCookieConsent: element => this.saveCookieConsent(element.dataset.actionValue),
                     switchAuthTab: element => this.switchAuthTab(element.dataset.actionValue),
                     closeAuthModal: () => this.closeAuthModal(),
+                    handleGoogleLogin: () => this.handleGoogleLogin(),
                     handleFacebookLogin: () => this.handleFacebookLogin(),
                     handleAuthSubmit: (_element, event) => this.handleAuthSubmit(event),
                     closeSettingsModal: () => this.closeSettingsModal(),
@@ -427,39 +428,35 @@
             }
 
             renderGoogleButton() {
-                const container = document.getElementById('google-signin-button');
+                const button = document.getElementById('google-signin-button');
                 if (!this.googleClientId) {
-                    container.innerHTML = '<span class="self-center text-xs text-slate-400">Đăng nhập Google chưa được cấu hình.</span>';
+                    button.disabled = true;
+                    button.title = 'Đăng nhập Google chưa được cấu hình.';
                     return;
                 }
-                if (!window.google?.accounts?.id) {
+                if (!window.google?.accounts?.oauth2) {
+                    button.disabled = true;
                     const script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
                     if (script) script.addEventListener('load', () => this.renderGoogleButton(), { once: true });
                     return;
                 }
-                if (!container.clientWidth) {
-                    requestAnimationFrame(() => this.renderGoogleButton());
-                    return;
-                }
-                container.replaceChildren();
-
-                if (!this.googleInitialized) {
-                    window.google.accounts.id.initialize({
+                if (!this.googleTokenClient) {
+                    this.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
                         client_id: this.googleClientId,
-                        callback: response => this.handleGoogleCredentialResponse(response)
+                        scope: 'openid email profile',
+                        callback: response => {
+                            if (response.error || !response.access_token) {
+                                this.showAuthMessage('Không thể đăng nhập Google. Vui lòng thử lại.', false);
+                                return;
+                            }
+                            this.authenticateSocialAccount('/api/auth/google', {
+                                accessToken: response.access_token
+                            });
+                        }
                     });
-                    this.googleInitialized = true;
                 }
-
-                window.google.accounts.id.renderButton(container, {
-                    type: 'standard',
-                    theme: document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline',
-                    size: 'small',
-                    text: this.authTab === 'register' ? 'signup_with' : 'continue_with',
-                    shape: 'pill',
-                    logo_alignment: 'left',
-                    width: Math.min(280, container.clientWidth)
-                });
+                button.disabled = false;
+                button.title = '';
             }
 
             loadFacebookSdk() {
@@ -514,8 +511,13 @@
                 }, { scope: 'public_profile,email' });
             }
 
-            async handleGoogleCredentialResponse(response) {
-                await this.authenticateSocialAccount('/api/auth/google', { credential: response.credential });
+            handleGoogleLogin() {
+                if (!this.googleTokenClient) {
+                    this.showAuthMessage('Google đang tải. Vui lòng thử lại sau giây lát.', false);
+                    return;
+                }
+                sessionStorage.removeItem('skipFacebookAutoLogin');
+                this.googleTokenClient.requestAccessToken({ prompt: 'select_account' });
             }
 
             async authenticateSocialAccount(endpoint, credentials) {
@@ -1964,6 +1966,9 @@
                 document.getElementById('facebook-signin-label').textContent = isRegister
                     ? 'Đăng ký bằng Facebook'
                     : 'Tiếp tục với Facebook';
+                document.getElementById('google-signin-label').textContent = isRegister
+                    ? 'Đăng ký bằng Google'
+                    : 'Tiếp tục với Google';
 
                 if (type === 'login') {
                     document.getElementById('auth-tab-login').className = "text-lg font-black text-duo-blue border-b-2 border-duo-blue pb-1";

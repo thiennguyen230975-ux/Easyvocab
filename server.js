@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { randomBytes, randomInt, createHash } = require('node:crypto');
-const { OAuth2Client } = require('google-auth-library');
 const { Pool } = require('pg');
 const path = require('node:path');
 
@@ -28,9 +27,9 @@ pool.on('error', error => {
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || '';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 app.use(helmet({
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
@@ -320,28 +319,50 @@ app.post('/api/login', loginRateLimit, asyncHandler(async (req, res) => {
 }));
 
 app.post('/api/auth/google', oauthRateLimit, asyncHandler(async (req, res) => {
-    const { credential } = req.body;
-    if (typeof credential !== 'string' || credential.length > 10000 || !GOOGLE_CLIENT_ID) {
+    const { accessToken } = req.body;
+    if (typeof accessToken !== 'string' || accessToken.length > 4096 || !GOOGLE_CLIENT_ID) {
         return res.status(400).json({ success: false, message: 'Đăng nhập Google chưa được cấu hình!' });
     }
 
-    let payload;
+    let profile;
     try {
-        const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: GOOGLE_CLIENT_ID });
-        payload = ticket.getPayload();
+        const tokenInfoResponse = await fetch(
+            `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`,
+            { signal: AbortSignal.timeout(8000) }
+        );
+        if (!tokenInfoResponse.ok) {
+            return res.status(401).json({ success: false, message: 'Xác thực Google không hợp lệ!' });
+        }
+        const tokenInfo = await tokenInfoResponse.json();
+        const scopes = typeof tokenInfo.scope === 'string' ? tokenInfo.scope.split(' ') : [];
+        const hasEmailScope = scopes.includes('email')
+            || scopes.includes('https://www.googleapis.com/auth/userinfo.email');
+        if (tokenInfo.aud !== GOOGLE_CLIENT_ID || !(Number(tokenInfo.expires_in) > 0)
+            || !scopes.includes('openid') || !hasEmailScope) {
+            return res.status(401).json({ success: false, message: 'Xác thực Google không hợp lệ!' });
+        }
+
+        const profileResponse = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: AbortSignal.timeout(8000)
+        });
+        if (!profileResponse.ok) {
+            return res.status(401).json({ success: false, message: 'Xác thực Google không hợp lệ!' });
+        }
+        profile = await profileResponse.json();
     } catch (error) {
-        console.error('Google token verification failed:', error);
-        return res.status(401).json({ success: false, message: 'Xác thực Google thất bại!' });
+        console.error('Google identity verification request failed:', error.name);
+        return res.status(502).json({ success: false, message: 'Không thể xác thực Google lúc này.' });
     }
-    if (!payload?.email || !payload.email_verified || typeof payload.sub !== 'string') {
+    if (typeof profile.email !== 'string' || profile.email_verified !== true || typeof profile.sub !== 'string') {
         return res.status(401).json({ success: false, message: 'Tài khoản Google chưa xác thực email!' });
     }
 
-    const email = payload.email.trim().toLowerCase();
+    const email = profile.email.trim().toLowerCase();
     const user = await findOrCreateOAuthUser('google', {
-        providerId: payload.sub,
+        providerId: profile.sub,
         email,
-        name: typeof payload.name === 'string' ? payload.name : ''
+        name: typeof profile.name === 'string' ? profile.name : ''
     });
     await createSession(req, res, user);
     return res.json({ success: true, message: 'Đăng nhập Google thành công!', user: publicUser(user) });
