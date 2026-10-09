@@ -437,6 +437,11 @@
                     if (script) script.addEventListener('load', () => this.renderGoogleButton(), { once: true });
                     return;
                 }
+                if (!container.clientWidth) {
+                    requestAnimationFrame(() => this.renderGoogleButton());
+                    return;
+                }
+                container.replaceChildren();
 
                 if (!this.googleInitialized) {
                     window.google.accounts.id.initialize({
@@ -446,15 +451,14 @@
                     this.googleInitialized = true;
                 }
 
-                container.replaceChildren();
                 window.google.accounts.id.renderButton(container, {
                     type: 'standard',
                     theme: document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline',
-                    size: 'medium',
+                    size: 'small',
                     text: this.authTab === 'register' ? 'signup_with' : 'continue_with',
-                    shape: 'pill',
+                    shape: 'rectangular',
                     logo_alignment: 'left',
-                    width: Math.min(280, container.clientWidth || 280)
+                    width: Math.min(240, container.clientWidth)
                 });
             }
 

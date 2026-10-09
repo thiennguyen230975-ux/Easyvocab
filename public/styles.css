@@ -548,13 +548,17 @@
             border-radius: 0.75rem;
         }
         #google-signin-button {
-            min-height: 2rem;
-            max-width: 17.5rem;
+            min-height: 2.25rem;
+            width: 15rem;
+            max-width: 100%;
             margin-inline: auto;
             overflow: hidden;
         }
         #google-signin-button iframe {
+            display: block;
+            width: 15rem !important;
             max-width: 100%;
+            margin-inline: auto;
         }
         .quiz-tab-btn {
             min-height: 2.8rem;
