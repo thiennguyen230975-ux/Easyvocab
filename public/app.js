@@ -340,7 +340,6 @@
                     closeAuthModal: () => this.closeAuthModal(),
                     handleGoogleLogin: () => this.handleGoogleLogin(),
                     handleFacebookLogin: () => this.handleFacebookLogin(),
-                    handleAuthSubmit: (_element, event) => this.handleAuthSubmit(event),
                     closeSettingsModal: () => this.closeSettingsModal(),
                     updateTTSSettings: () => this.updateTTSSettings(),
                     logout: () => this.logout(),
@@ -1954,15 +1953,13 @@
 
             switchAuthTab(type) {
                 this.authTab = type;
-                const form = document.getElementById('auth-form');
                 const registerHelp = document.getElementById('auth-register-help');
                 const subtitle = document.getElementById('auth-subtitle');
                 const isRegister = type === 'register';
-                form.classList.toggle('hidden', isRegister);
                 registerHelp.classList.toggle('hidden', !isRegister);
                 subtitle.textContent = isRegister
                     ? 'Tạo tài khoản miễn phí bằng Google hoặc Facebook.'
-                    : 'Đăng nhập bằng Google, Facebook hoặc email và mật khẩu.';
+                    : 'Đăng nhập bằng Google hoặc Facebook.';
                 document.getElementById('facebook-signin-label').textContent = isRegister
                     ? 'Đăng ký bằng Facebook'
                     : 'Tiếp tục với Facebook';
@@ -1978,29 +1975,6 @@
                     document.getElementById('auth-tab-login').className = "text-lg font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 pb-1";
                 }
                 this.renderGoogleButton();
-            }
-
-            async handleAuthSubmit(e) {
-                e.preventDefault();
-                try {
-                    const response = await fetch('/api/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            username: document.getElementById('auth-email-input').value.trim(),
-                            password: document.getElementById('auth-pass-input').value
-                        })
-                    });
-                    const data = await response.json();
-                    if (!response.ok || !data.success) {
-                        throw new Error(data.message || 'Email hoặc mật khẩu không chính xác.');
-                    }
-                    await this.setAuthenticatedUser(data.user);
-                    this.closeAuthModal();
-                    this.showAuthMessage('Đăng nhập thành công.', true);
-                } catch (error) {
-                    this.showAuthMessage(error.message || 'Không thể đăng nhập. Vui lòng thử lại.', false);
-                }
             }
 
             openSettingsModal() {
