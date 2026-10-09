@@ -454,11 +454,11 @@
                 window.google.accounts.id.renderButton(container, {
                     type: 'standard',
                     theme: document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline',
-                    size: 'medium',
+                    size: 'small',
                     text: this.authTab === 'register' ? 'signup_with' : 'continue_with',
                     shape: 'pill',
                     logo_alignment: 'left',
-                    width: Math.min(400, container.clientWidth)
+                    width: Math.min(280, container.clientWidth)
                 });
             }
 
