@@ -450,11 +450,11 @@
                 window.google.accounts.id.renderButton(container, {
                     type: 'standard',
                     theme: document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline',
-                    size: 'large',
+                    size: 'medium',
                     text: this.authTab === 'register' ? 'signup_with' : 'continue_with',
-                    shape: 'rectangular',
+                    shape: 'pill',
                     logo_alignment: 'left',
-                    width: Math.max(220, Math.min(400, container.clientWidth || 400))
+                    width: Math.min(280, container.clientWidth || 280)
                 });
             }
 
