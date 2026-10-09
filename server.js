@@ -46,6 +46,7 @@ app.use(helmet({
                 'https://graph.facebook.com',
                 'https://connect.facebook.net',
                 'https://cdn.jsdelivr.net',
+                'https://vitals.vercel-insights.com',
                 'https://cdnjs.cloudflare.com'
             ],
             frameSrc: ['https://accounts.google.com', 'https://www.google.com', 'https://www.facebook.com'],
